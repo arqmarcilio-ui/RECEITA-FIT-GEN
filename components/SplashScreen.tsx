@@ -60,8 +60,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart, onOpenFavorites, o
         </div>
       </div>
       
-      <div className="absolute bottom-8 text-slate-300 text-[10px] font-black uppercase tracking-widest">
-        Powered by Google Gemini 3
+      <div className="absolute bottom-8 flex flex-col items-center gap-1 text-slate-300 text-[10px] font-black uppercase tracking-widest">
+        <div>Powered by Google Gemini 3</div>
+        <div className="text-slate-500 font-bold">VERSÃO 1.2</div>
       </div>
     </div>
   );

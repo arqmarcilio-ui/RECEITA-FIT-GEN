@@ -1,0 +1,23 @@
+
+{
+  "entities": {
+    "AllowedUser": {
+      "title": "Allowed User",
+      "description": "A user authorized to access the application.",
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "description": "Whether the user is currently authorized."
+        }
+      },
+      "required": ["active"]
+    }
+  },
+  "firestore": {
+    "/allowed_users/{email}": {
+      "schema": "AllowedUser",
+      "description": "Collection of authorized users, indexed by email."
+    }
+  }
+}

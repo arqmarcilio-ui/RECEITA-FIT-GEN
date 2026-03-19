@@ -1,0 +1,24 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isEmailOwner(email) {
+      return isAuthenticated() && request.auth.token.email == email;
+    }
+
+    // Allowed users collection
+    match /allowed_users/{email} {
+      // Users can read their own authorization status
+      allow read: if isEmailOwner(email);
+      
+      // Only admins can create or update allowed users
+      // For now, we'll allow the first admin (the user who set up the app)
+      allow write: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
+    }
+  }
+}
