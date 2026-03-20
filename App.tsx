@@ -68,6 +68,7 @@ const App: React.FC = () => {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [unauthorizedEmail, setUnauthorizedEmail] = useState<string | null>(null);
   const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist'>('splash');
   const [prefs, setPrefs] = useState<UserPreferences>({
     dietaryFilters: [DietaryFilter.SEM_RESTRICAO], // Inicia com Sem Restrição
@@ -100,29 +101,45 @@ const App: React.FC = () => {
     if (!user?.email) return;
 
     // O administrador sempre tem acesso
-    const userEmail = user.email.toLowerCase();
-    if (userEmail === "arqmarcilio@gmail.com") {
+    const userEmail = user.email; // Busca exatamente o e-mail autenticado
+    if (userEmail.toLowerCase() === "arqmarcilio@gmail.com") {
       setIsAuthorized(true);
       setAuthLoading(false);
       return;
     }
 
     const userDocRef = doc(db, 'allowed_users', userEmail);
+    
+    console.log("[Auth] E-mail autenticado:", userEmail);
+    console.log("[Auth] Caminho do documento consultado:", userDocRef.path);
+
     const unsubscribeSnapshot = onSnapshot(userDocRef, (snapshot) => {
+      console.log("[Auth] Documento existe?", snapshot.exists() ? "SIM" : "NÃO");
+      
       if (snapshot.exists()) {
         const data = snapshot.data();
+        console.log("[Auth] Valor de active:", data.active);
+        
         if (data.active === true) {
           setIsAuthorized(true);
+          setUnauthorizedEmail(null);
         } else {
           setIsAuthorized(false);
+          setUnauthorizedEmail(userEmail);
+          signOut(auth); // Desloga imediatamente
         }
       } else {
         setIsAuthorized(false);
+        setUnauthorizedEmail(userEmail);
+        signOut(auth); // Desloga imediatamente
       }
       setAuthLoading(false);
     }, (error) => {
+      console.error("[Auth] Erro ao verificar autorização:", error);
       handleFirestoreError(error, OperationType.GET, `allowed_users/${userEmail}`);
       setIsAuthorized(false);
+      setUnauthorizedEmail(userEmail);
+      signOut(auth);
       setAuthLoading(false);
     });
 
@@ -132,6 +149,7 @@ const App: React.FC = () => {
   const handleLogin = async () => {
     setAuthLoading(true);
     setIsAuthorized(null);
+    setUnauthorizedEmail(null);
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
@@ -198,7 +216,7 @@ const App: React.FC = () => {
   }
 
   // Se não estiver logado ou não autorizado
-  if (!user || isAuthorized === false) {
+  if (!user || isAuthorized === false || unauthorizedEmail) {
     return (
       <div className="max-w-xl mx-auto min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-100">
@@ -208,11 +226,11 @@ const App: React.FC = () => {
           
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Acesso Restrito</h1>
           
-          {isAuthorized === false ? (
+          {unauthorizedEmail ? (
             <div className="mb-8">
               <p className="text-red-500 font-medium mb-4">Acesso não autorizado para este e-mail.</p>
               <p className="text-slate-500 text-sm mb-4">Entre em contato com o administrador para solicitar acesso.</p>
-              <p className="text-slate-400 text-xs italic">Email: {user?.email}</p>
+              <p className="text-slate-400 text-xs italic">Email: {unauthorizedEmail}</p>
             </div>
           ) : (
             <p className="text-slate-500 mb-8">Faça login para acessar o gerador de receitas saudáveis.</p>
