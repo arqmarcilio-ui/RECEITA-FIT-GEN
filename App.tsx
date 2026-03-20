@@ -12,10 +12,62 @@ import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot } f
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { LogOut, ShieldAlert } from 'lucide-react';
 
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+const handleFirestoreError = (error: unknown, operationType: OperationType, path: string | null) => {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  return errInfo;
+};
+
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist'>('splash');
   const [prefs, setPrefs] = useState<UserPreferences>({
     dietaryFilters: [DietaryFilter.SEM_RESTRICAO], // Inicia com Sem Restrição
@@ -69,20 +121,23 @@ const App: React.FC = () => {
       }
       setAuthLoading(false);
     }, (error) => {
-      console.error("Erro ao verificar autorização:", error);
+      handleFirestoreError(error, OperationType.GET, `allowed_users/${userEmail}`);
       setIsAuthorized(false);
       setAuthLoading(false);
     });
 
     return () => unsubscribeSnapshot();
-  }, [user]);
+  }, [user, retryCount]);
 
   const handleLogin = async () => {
+    setAuthLoading(true);
+    setIsAuthorized(null);
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Erro no login:", error);
       alert("Erro ao fazer login com Google.");
+      setAuthLoading(false);
     }
   };
 
@@ -165,8 +220,18 @@ const App: React.FC = () => {
 
           <div className="flex flex-col gap-3">
             <button
-              onClick={handleLogin}
+              onClick={() => {
+                setAuthLoading(true);
+                setRetryCount(prev => prev + 1);
+              }}
               className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-3"
+            >
+              Tentar Novamente
+            </button>
+
+            <button
+              onClick={handleLogin}
+              className="w-full py-4 bg-white border-2 border-emerald-500 text-emerald-600 rounded-2xl font-bold transition-all flex items-center justify-center gap-3"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 bg-white rounded-full p-0.5" />
               {user ? 'Trocar de Conta' : 'Entrar com Google'}
