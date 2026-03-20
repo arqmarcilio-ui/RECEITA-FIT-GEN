@@ -40,7 +40,12 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
     const ingredientsText = recipe.ingredients.map(ing => `• ${ing}`).join('\n');
     const instructionsText = recipe.instructions.map((step, i) => `${i + 1}. ${step}`).join('\n');
     
-    const text = `*🥗 RECEITA FIT: ${recipe.title.toUpperCase()}*\n\n${recipe.description}\n\n*🛒 INGREDIENTES:*\n${ingredientsText}\n\n*👨‍🍳 MODO DE PREPARO:*\n${instructionsText}\n\n*📊 MACROS:* ${recipe.macros.calories} | Prot: ${recipe.macros.protein}\n\n*💰 CUSTO ESTIMADO:* ${recipe.estimatedCost}`;
+    // Se a imagem for uma URL (não base64), inclui no texto
+    const imageUrlText = (recipe.imageUrl && !recipe.imageUrl.startsWith('data:')) 
+      ? `\n\n*Imagem:*\n${recipe.imageUrl}` 
+      : '';
+
+    const text = `*Receita Fit:*\n\n${recipe.title.toUpperCase()}\n\n${recipe.description}\n\n*🛒 INGREDIENTES:*\n${ingredientsText}\n\n*👨‍🍳 MODO DE PREPARO:*\n${instructionsText}\n\n*📊 MACROS:* ${recipe.macros.calories} | Prot: ${recipe.macros.protein}\n\n*💰 CUSTO ESTIMADO:* ${recipe.estimatedCost}${imageUrlText}`;
     
     // Tenta usar a Web Share API para enviar com imagem (funciona melhor em dispositivos móveis)
     if (navigator.share) {

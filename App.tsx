@@ -8,7 +8,7 @@ import ResultScreen from './components/ResultScreen';
 import FavoritesList from './components/FavoritesList';
 import HistoryList from './components/HistoryList';
 import LoadingScreen from './components/LoadingScreen';
-import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot } from './firebase';
+import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, storage, ref, uploadString, getDownloadURL } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { LogOut, ShieldAlert } from 'lucide-react';
 
@@ -176,7 +176,30 @@ const App: React.FC = () => {
     setView('loading');
     try {
       const recipe = await generateRecipe(data);
+      
+      // Mostra o resultado imediatamente com a imagem base64 (não bloqueia a UI)
       setResult(recipe);
+      setView('result');
+
+      // Faz o upload para o Firebase Storage em segundo plano para ter uma URL pública
+      if (recipe.imageUrl && recipe.imageUrl.startsWith('data:')) {
+        // Não usamos await aqui para não travar a tela de carregamento
+        (async () => {
+          try {
+            const fileName = `recipes/${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+            const storageRef = ref(storage, fileName);
+            await uploadString(storageRef, recipe.imageUrl!, 'data_url');
+            const downloadUrl = await getDownloadURL(storageRef);
+            
+            // Atualiza o estado com a nova URL pública para o compartilhamento funcionar melhor
+            recipe.imageUrl = downloadUrl;
+            setResult({ ...recipe });
+            console.log("[Storage] Imagem enviada com sucesso:", downloadUrl);
+          } catch (storageErr) {
+            console.error("[Storage] Erro ao enviar imagem (fallback para base64):", storageErr);
+          }
+        })();
+      }
       
       // Armazenamento seguro do histórico para evitar QuotaExceededError
       try {
@@ -202,7 +225,6 @@ const App: React.FC = () => {
         console.error("Erro ao processar histórico no localStorage", e);
       }
       
-      setView('result');
     } catch (e) {
       console.error(e);
       alert("Não conseguimos gerar sua receita agora. Verifique sua conexão ou tente mudar algumas preferências.");
