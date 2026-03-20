@@ -50,7 +50,10 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
       ? `\n\n*Imagem:*\n${recipe.imageUrl}` 
       : '';
 
-    const text = `*Receita Fit:*\n\n${recipe.title.toUpperCase()}\n\n${recipe.description}\n\n*🛒 INGREDIENTES:*\n${ingredientsText}\n\n*👨‍🍳 MODO DE PREPARO:*\n${instructionsText}\n\n*📊 MACROS:* ${recipe.macros.calories} | Prot: ${recipe.macros.protein}\n\n*💰 CUSTO ESTIMADO:* ${recipe.estimatedCost}${imageUrlText}`;
+    // Link do App para visualização direta
+    const appUrl = `${window.location.origin}/?id=${recipe.id}`;
+    
+    const text = `*Receita Fit:*\n\n${recipe.title.toUpperCase()}\n\n${recipe.description}\n\n*🛒 INGREDIENTES:*\n${ingredientsText}\n\n*👨‍🍳 MODO DE PREPARO:*\n${instructionsText}\n\n*📊 MACROS:* ${recipe.macros.calories} | Prot: ${recipe.macros.protein}\n\n*💰 CUSTO ESTIMADO:* ${recipe.estimatedCost}\n\n*🔗 VEJA NO APP:*\n${appUrl}${imageUrlText}`;
     
     // Tenta usar a Web Share API para enviar com imagem (funciona melhor em dispositivos móveis)
     if (navigator.share) {

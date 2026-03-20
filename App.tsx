@@ -8,7 +8,7 @@ import ResultScreen from './components/ResultScreen';
 import FavoritesList from './components/FavoritesList';
 import HistoryList from './components/HistoryList';
 import LoadingScreen from './components/LoadingScreen';
-import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, storage, ref, uploadString, getDownloadURL, collection, addDoc, serverTimestamp } from './firebase';
+import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, getDocFromServer, storage, ref, uploadString, getDownloadURL, collection, addDoc, serverTimestamp } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { LogOut, ShieldAlert } from 'lucide-react';
 
@@ -145,6 +145,37 @@ const App: React.FC = () => {
 
     return () => unsubscribeSnapshot();
   }, [user, retryCount]);
+
+  useEffect(() => {
+    const checkDeepLink = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const recipeId = params.get('id');
+      
+      if (recipeId) {
+        setView('loading');
+        try {
+          const docRef = doc(db, 'recipes', recipeId);
+          const docSnap = await getDocFromServer(docRef);
+          
+          if (docSnap.exists()) {
+            const data = docSnap.data() as RecipeResult;
+            setResult({ ...data, id: docSnap.id });
+            setView('result');
+          } else {
+            console.error("Receita não encontrada");
+            setView('splash');
+          }
+        } catch (err) {
+          console.error("Erro ao buscar deep link:", err);
+          setView('splash');
+        }
+      }
+    };
+
+    if (isAuthorized) {
+      checkDeepLink();
+    }
+  }, [isAuthorized]);
 
   const handleLogin = async () => {
     setAuthLoading(true);
