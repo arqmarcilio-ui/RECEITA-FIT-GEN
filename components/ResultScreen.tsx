@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
+import { db, doc, updateDoc } from '../firebase';
 
 interface ResultScreenProps {
   recipe: RecipeResult;
@@ -8,31 +9,35 @@ interface ResultScreenProps {
 }
 
 const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
-  const [isFav, setIsFav] = useState(false);
+  const [isFav, setIsFav] = useState(recipe.isFavorite || false);
 
   useEffect(() => {
-    try {
-      const favs = JSON.parse(localStorage.getItem('fit_gen_favs') || '[]');
-      setIsFav(favs.some((f: RecipeResult) => f.title === recipe.title));
-    } catch (e) {
-      console.error("Error loading favorites", e);
-    }
-  }, [recipe.title]);
+    setIsFav(recipe.isFavorite || false);
+  }, [recipe.id, recipe.isFavorite]);
 
-  const toggleFav = () => {
+  const toggleFav = async () => {
+    const newFavStatus = !isFav;
+    setIsFav(newFavStatus);
+    
+    // Atualiza no Firestore se houver um ID
+    if (recipe.id) {
+      try {
+        await updateDoc(doc(db, 'recipes', recipe.id), {
+          isFavorite: newFavStatus
+        });
+        recipe.isFavorite = newFavStatus;
+      } catch (e) {
+        console.error("Erro ao atualizar favorito no Firestore:", e);
+      }
+    }
+
+    // Mantém o localStorage como backup
     try {
       const favs = JSON.parse(localStorage.getItem('fit_gen_favs') || '[]');
-      const newFavs = isFav ? favs.filter((f: RecipeResult) => f.title !== recipe.title) : [...favs, recipe];
-      
-      try {
-        localStorage.setItem('fit_gen_favs', JSON.stringify(newFavs));
-        setIsFav(!isFav);
-      } catch (storageError) {
-        // Alerta o usuário caso o limite do navegador seja atingido (favoritos costumam ter imagens grandes)
-        alert("Sua galeria de favoritas está cheia! Remova algumas receitas para salvar novas.");
-      }
+      const newFavs = newFavStatus ? [...favs, recipe] : favs.filter((f: RecipeResult) => f.title !== recipe.title);
+      localStorage.setItem('fit_gen_favs', JSON.stringify(newFavs));
     } catch (e) {
-      console.error("Error toggling favorite", e);
+      console.error("Error toggling favorite local", e);
     }
   };
 

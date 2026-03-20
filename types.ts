@@ -51,6 +51,7 @@ export interface UserPreferences {
 }
 
 export interface RecipeResult {
+  id?: string;
   title: string;
   description: string;
   ingredients: string[];
@@ -64,4 +65,5 @@ export interface RecipeResult {
     fats: string;
     calories: string;
   };
+  isFavorite?: boolean;
 }

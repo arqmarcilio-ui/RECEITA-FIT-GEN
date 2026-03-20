@@ -8,7 +8,7 @@ import ResultScreen from './components/ResultScreen';
 import FavoritesList from './components/FavoritesList';
 import HistoryList from './components/HistoryList';
 import LoadingScreen from './components/LoadingScreen';
-import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, storage, ref, uploadString, getDownloadURL } from './firebase';
+import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, storage, ref, uploadString, getDownloadURL, collection, addDoc, serverTimestamp } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { LogOut, ShieldAlert } from 'lucide-react';
 
@@ -170,7 +170,7 @@ const App: React.FC = () => {
   };
 
   const handleGenerate = async (data: UserPreferences) => {
-    if (!isAuthorized) return;
+    if (!isAuthorized || !user) return;
     
     setPrefs(data);
     setView('loading');
@@ -182,47 +182,50 @@ const App: React.FC = () => {
       setView('result');
 
       // Faz o upload para o Firebase Storage em segundo plano para ter uma URL pública
-      if (recipe.imageUrl && recipe.imageUrl.startsWith('data:')) {
-        // Não usamos await aqui para não travar a tela de carregamento
-        (async () => {
-          try {
+      // E salva no Firestore para persistência e visibilidade no console
+      (async () => {
+        try {
+          let finalImageUrl = recipe.imageUrl;
+
+          if (recipe.imageUrl && recipe.imageUrl.startsWith('data:')) {
             const fileName = `recipes/${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
             const storageRef = ref(storage, fileName);
             await uploadString(storageRef, recipe.imageUrl!, 'data_url');
-            const downloadUrl = await getDownloadURL(storageRef);
+            finalImageUrl = await getDownloadURL(storageRef);
             
-            // Atualiza o estado com a nova URL pública para o compartilhamento funcionar melhor
-            recipe.imageUrl = downloadUrl;
+            // Atualiza o estado com a nova URL pública
+            recipe.imageUrl = finalImageUrl;
             setResult({ ...recipe });
-            console.log("[Storage] Imagem enviada com sucesso:", downloadUrl);
-          } catch (storageErr) {
-            console.error("[Storage] Erro ao enviar imagem (fallback para base64):", storageErr);
+            console.log("[Storage] Imagem enviada com sucesso:", finalImageUrl);
           }
-        })();
-      }
+
+          // Salva no Firestore para aparecer no console do Firebase e ser persistente
+          const docRef = await addDoc(collection(db, 'recipes'), {
+            ...recipe,
+            userId: user.uid,
+            createdAt: serverTimestamp(),
+            imageUrl: finalImageUrl,
+            isFavorite: false
+          });
+          
+          // Atualiza o ID localmente
+          recipe.id = docRef.id;
+          setResult({ ...recipe });
+          console.log("[Firestore] Receita salva com sucesso com ID:", docRef.id);
+
+        } catch (err) {
+          console.error("[Firebase] Erro ao processar persistência:", err);
+        }
+      })();
       
-      // Armazenamento seguro do histórico para evitar QuotaExceededError
+      // Armazenamento local como backup rápido
       try {
         const historyStr = localStorage.getItem('fit_gen_hist');
         let history = historyStr ? JSON.parse(historyStr) : [];
-        const newHistory = [recipe, ...history].slice(0, 20); // Reduzido de 50 para 20 para economizar espaço
-        
-        try {
-          localStorage.setItem('fit_gen_hist', JSON.stringify(newHistory));
-        } catch (storageError) {
-          // Se falhar por cota (geralmente devido ao tamanho das imagens base64)
-          console.warn("localStorage quota exceeded, pruning history...");
-          // Tenta salvar apenas os 5 mais recentes ou remover a imagem do mais antigo
-          localStorage.removeItem('fit_gen_hist');
-          try {
-            localStorage.setItem('fit_gen_hist', JSON.stringify([recipe]));
-          } catch (innerError) {
-            // Caso extremo: salva a receita sem a imagem se a imagem for o problema
-            localStorage.setItem('fit_gen_hist', JSON.stringify([{ ...recipe, imageUrl: undefined }]));
-          }
-        }
+        const newHistory = [recipe, ...history].slice(0, 20);
+        localStorage.setItem('fit_gen_hist', JSON.stringify(newHistory));
       } catch (e) {
-        console.error("Erro ao processar histórico no localStorage", e);
+        console.error("Erro ao processar histórico local", e);
       }
       
     } catch (e) {

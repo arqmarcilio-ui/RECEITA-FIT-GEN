@@ -22,5 +22,13 @@ service cloud.firestore {
       // For now, we'll allow the first admin (the user who set up the app)
       allow write: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
     }
+
+    // Recipes collection
+    match /recipes/{recipeId} {
+      // Users can read and write their own recipes
+      allow read, write: if isAuthenticated() && 
+                          (request.resource == null || request.resource.data.userId == request.auth.uid) &&
+                          (resource == null || resource.data.userId == request.auth.uid);
+    }
   }
 }

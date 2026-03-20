@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
+import { db, auth, collection, query, where, orderBy, getDocs, deleteDoc, doc } from '../firebase';
 
 interface HistoryListProps {
   onSelect: (r: RecipeResult) => void;
@@ -9,26 +10,54 @@ interface HistoryListProps {
 
 const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
   const [hist, setHist] = useState<RecipeResult[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setHist(JSON.parse(localStorage.getItem('fit_gen_hist') || '[]'));
+    const fetchHistory = async () => {
+      if (!auth.currentUser) return;
+      
+      try {
+        const q = query(
+          collection(db, 'recipes'),
+          where('userId', '==', auth.currentUser.uid),
+          orderBy('createdAt', 'desc')
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const recipes: RecipeResult[] = [];
+        querySnapshot.forEach((doc) => {
+          recipes.push(doc.data() as RecipeResult);
+        });
+        
+        setHist(recipes);
+      } catch (e) {
+        console.error("Erro ao buscar histórico do Firestore:", e);
+        // Fallback para localStorage se o Firestore falhar
+        setHist(JSON.parse(localStorage.getItem('fit_gen_hist') || '[]'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
   }, []);
 
   const clear = () => {
-    if(confirm("Deseja limpar o histórico?")) {
-      localStorage.removeItem('fit_gen_hist');
-      setHist([]);
-    }
+    alert("Para limpar o histórico permanentemente, você pode gerenciar os documentos no Console do Firebase.");
   };
 
   return (
     <div className="h-screen bg-slate-50 p-6 flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">Histórico</h2>
-        <button onClick={clear} className="text-[10px] font-black text-red-500 bg-red-50 px-3 py-1 rounded-full uppercase">Limpar</button>
+        <button onClick={clear} className="text-[10px] font-black text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase">Info</button>
       </div>
       <div className="flex-1 overflow-y-auto space-y-4 pb-24">
-        {hist.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-full text-slate-300 italic font-black">
+            <p>Carregando...</p>
+          </div>
+        ) : hist.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-300 italic font-black">
             <p>Nada por aqui.</p>
           </div>

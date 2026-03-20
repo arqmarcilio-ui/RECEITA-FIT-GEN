@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
+import { db, auth, collection, query, where, getDocs } from '../firebase';
 
 interface FavoritesListProps {
   onSelect: (r: RecipeResult) => void;
@@ -9,16 +10,46 @@ interface FavoritesListProps {
 
 const FavoritesList: React.FC<FavoritesListProps> = ({ onSelect, onBack }) => {
   const [favs, setFavs] = useState<RecipeResult[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setFavs(JSON.parse(localStorage.getItem('fit_gen_favs') || '[]'));
+    const fetchFavorites = async () => {
+      if (!auth.currentUser) return;
+      
+      try {
+        const q = query(
+          collection(db, 'recipes'),
+          where('userId', '==', auth.currentUser.uid),
+          where('isFavorite', '==', true)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const recipes: RecipeResult[] = [];
+        querySnapshot.forEach((doc) => {
+          recipes.push({ id: doc.id, ...doc.data() } as RecipeResult);
+        });
+        
+        setFavs(recipes);
+      } catch (e) {
+        console.error("Erro ao buscar favoritos do Firestore:", e);
+        setFavs(JSON.parse(localStorage.getItem('fit_gen_favs') || '[]'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFavorites();
   }, []);
 
   return (
     <div className="h-screen bg-slate-50 p-6 flex flex-col">
       <h2 className="text-4xl font-black text-slate-900 mb-8 uppercase tracking-tighter">Receitas <span className="text-emerald-500">Salvas</span></h2>
       <div className="flex-1 overflow-y-auto space-y-4 pb-24">
-        {favs.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-full text-slate-300 italic font-black">
+            <p>Carregando...</p>
+          </div>
+        ) : favs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-300 italic font-black">
             <p>Nenhuma receita salva ainda.</p>
           </div>
