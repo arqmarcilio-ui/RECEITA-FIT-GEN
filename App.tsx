@@ -83,6 +83,7 @@ const App: React.FC = () => {
     skillLevel: SkillLevel.BASICA
   });
   const [result, setResult] = useState<RecipeResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Monitora estado de autenticação
   useEffect(() => {
@@ -102,9 +103,15 @@ const App: React.FC = () => {
     if (!user?.email) return;
 
     // O administrador sempre tem acesso
-    const userEmail = user.email; // Busca exatamente o e-mail autenticado
-    if (userEmail.toLowerCase() === "arqmarcilio@gmail.com") {
+    const userEmail = user.email; 
+    if (userEmail && userEmail.toLowerCase() === "arqmarcilio@gmail.com") {
       setIsAuthorized(true);
+      setAuthLoading(false);
+      return;
+    }
+
+    if (!userEmail) {
+      setIsAuthorized(false);
       setAuthLoading(false);
       return;
     }
@@ -209,6 +216,7 @@ const App: React.FC = () => {
     
     setPrefs(data);
     setView('loading');
+    setError(null);
     try {
       const recipe = await generateRecipe(data);
       console.log(`[App] Receita recebida da IA: "${recipe.title}"`);
@@ -266,9 +274,9 @@ const App: React.FC = () => {
       const newHistory = [recipe, ...history];
       safeSaveToLocalStorage('fit_gen_hist', newHistory, 20);
       
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Não conseguimos gerar sua receita agora. Verifique sua conexão ou tente mudar algumas preferências.");
+      setError(e.message || "Não conseguimos gerar sua receita agora. Verifique sua conexão ou tente mudar algumas preferências.");
       setView('form');
     }
   };
@@ -279,7 +287,7 @@ const App: React.FC = () => {
   }
 
   // Se não estiver logado ou não autorizado
-  if (!user || isAuthorized === false || unauthorizedEmail) {
+  if (!user || isAuthorized !== true) {
     return (
       <div className="max-w-xl mx-auto min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-100">
@@ -287,16 +295,22 @@ const App: React.FC = () => {
             <ShieldAlert className="w-10 h-10 text-emerald-600" />
           </div>
           
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Acesso Restrito</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            {!user ? 'Bem-vindo' : 'Acesso Restrito'}
+          </h1>
           
-          {unauthorizedEmail ? (
+          {user && unauthorizedEmail ? (
             <div className="mb-8">
               <p className="text-red-500 font-medium mb-4">Acesso não autorizado para este e-mail.</p>
               <p className="text-slate-500 text-sm mb-4">Entre em contato com o administrador para solicitar acesso.</p>
               <p className="text-slate-400 text-xs italic">Email: {unauthorizedEmail}</p>
             </div>
           ) : (
-            <p className="text-slate-500 mb-8">Faça login para acessar o gerador de receitas saudáveis.</p>
+            <p className="text-slate-500 mb-8">
+              {!user 
+                ? 'Faça login para acessar o gerador de receitas saudáveis.' 
+                : 'Verificando sua autorização...'}
+            </p>
           )}
 
           <div className="flex flex-col gap-3">
@@ -346,7 +360,25 @@ const App: React.FC = () => {
 
       {view === 'splash' && <SplashScreen onStart={() => setView('form')} onOpenFavorites={() => setView('favs')} onOpenHistory={() => setView('hist')} />}
       
-      {view === 'form' && <StepForm initialData={prefs} onCancel={() => setView('splash')} onSubmit={handleGenerate} />}
+      {view === 'form' && (
+        <div className="relative h-full">
+          {error && (
+            <div className="absolute top-4 left-4 right-4 z-50 bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-4">
+              <ShieldAlert className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-red-800 font-bold text-sm">Erro na Geração</p>
+                <p className="text-red-600 text-[10px]">{error}</p>
+              </div>
+              <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+          <StepForm initialData={prefs} onCancel={() => setView('splash')} onSubmit={handleGenerate} />
+        </div>
+      )}
       
       {view === 'loading' && <LoadingScreen />}
 

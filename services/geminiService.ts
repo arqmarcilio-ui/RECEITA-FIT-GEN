@@ -3,8 +3,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { UserPreferences, RecipeResult, DietaryFilter } from "../types";
 
 export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResult> => {
-  // Use process.env.API_KEY directly as required
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  // Use process.env.GEMINI_API_KEY directly as required
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY || '' });
   
   const systemInstruction = `Você é um nutricionista sênior e chef de cozinha renomado especializado em culinária saudável e funcional (FIT). 
   Sua missão é criar receitas que sejam nutricionalmente densas, fáceis de preparar e deliciosas.
@@ -80,8 +80,9 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
       console.log(`[Image Generation] Iniciando tentativa ${attempt} para: "${recipeData.title}"`);
       console.log(`[Image Generation] Modelo: ${IMAGE_MODEL}`);
       
-      if (!process.env.API_KEY) {
-        console.error("[Image Generation] ERRO CRÍTICO: process.env.API_KEY não está definido!");
+      const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+      if (!apiKey) {
+        console.error("[Image Generation] ERRO CRÍTICO: Chave de API não está definida!");
       }
 
       try {
