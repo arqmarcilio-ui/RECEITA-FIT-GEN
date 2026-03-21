@@ -74,8 +74,16 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
 
     // Gerar imagem do prato com contexto mais rico e realista
     const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
+    const IMAGE_MODEL = 'gemini-2.5-flash-image';
     
     const generateImage = async (attempt: number): Promise<string | null> => {
+      console.log(`[Image Generation] Iniciando tentativa ${attempt} para: "${recipeData.title}"`);
+      console.log(`[Image Generation] Modelo: ${IMAGE_MODEL}`);
+      
+      if (!process.env.API_KEY) {
+        console.error("[Image Generation] ERRO CRÍTICO: process.env.API_KEY não está definido!");
+      }
+
       try {
         const seed = Math.floor(Math.random() * 1000);
         const imagePrompt = `Realistic food photography of ${recipeData.title}, high quality food photo, professional food styling, top view or restaurant presentation, detailed texture, 4k, appetizing, natural colors. No abstract art, no conceptual images, only real food and ingredients. Style #${seed}`;
@@ -86,19 +94,29 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
         console.log(`[Image Prompt] ${imagePrompt}`);
         
         const imgResponse = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-image',
+          model: IMAGE_MODEL,
           contents: imagePrompt,
           config: { imageConfig: { aspectRatio: "1:1" } }
         });
         
-        const part = imgResponse.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-        if (part?.inlineData) {
-          console.log(`[Image Generation] sucesso`);
-          return `data:image/png;base64,${part.inlineData.data}`;
+        console.log(`[Image Generation] Resposta da API recebida (Tentativa ${attempt})`);
+        
+        if (imgResponse.candidates && imgResponse.candidates.length > 0) {
+          const part = imgResponse.candidates[0].content?.parts.find(p => p.inlineData);
+          if (part?.inlineData) {
+            console.log(`[Image Generation] sucesso - Imagem gerada via Gemini`);
+            return `data:image/png;base64,${part.inlineData.data}`;
+          } else {
+            console.warn(`[Image Generation] Aviso: Resposta sem dados de imagem (inlineData)`);
+          }
+        } else {
+          console.warn(`[Image Generation] Aviso: Nenhum candidato retornado na resposta`);
         }
         return null;
-      } catch (e) {
-        console.warn(`[Gemini] Erro na tentativa ${attempt} de gerar imagem:`, e);
+      } catch (e: any) {
+        console.error(`[Image Generation] ERRO na tentativa ${attempt}:`, e);
+        if (e.message) console.error(`[Image Generation] Mensagem de erro: ${e.message}`);
+        if (e.stack) console.error(`[Image Generation] Stack trace: ${e.stack}`);
         return null;
       }
     };
@@ -112,8 +130,10 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
 
     if (finalImageUrl) {
       recipeData.imageUrl = finalImageUrl;
+      console.log(`[Image Final] Fonte: Gemini AI`);
     } else {
-      console.log(`[Image Fallback] usando placeholder fixo`);
+      console.log(`[Image Fallback] Entrando em fallback - usando placeholder fixo`);
+      console.log(`[Image Final] Fonte: Placeholder (Unsplash)`);
       recipeData.imageUrl = FOOD_PLACEHOLDER;
     }
 
