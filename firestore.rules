@@ -25,8 +25,11 @@ service cloud.firestore {
 
     // Recipes collection
     match /recipes/{recipeId} {
-      // Users can read and write their own recipes
-      allow read, write: if isAuthenticated() && 
+      // Allow public read for previews (WhatsApp, etc.)
+      allow read: if true;
+      
+      // Only authenticated owners can write or delete
+      allow write: if isAuthenticated() && 
                           (request.resource == null || request.resource.data.userId == request.auth.uid) &&
                           (resource == null || resource.data.userId == request.auth.uid);
     }

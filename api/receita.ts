@@ -46,7 +46,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const title = recipe.title || 'Receita Fit';
     const description = recipe.description || 'Confira esta receita deliciosa e saudável!';
-    const imageUrl = recipe.imageUrl || 'https://picsum.photos/seed/recipe/1200/630';
+    
+    // Use the recipe's image, or a unique fallback based on the recipe ID
+    const imageUrl = recipe.imageUrl || `https://picsum.photos/seed/${id}/1200/630`;
     const ingredients = recipe.ingredients || [];
     const instructions = recipe.instructions || [];
     const macros = recipe.macros || { calories: 'N/A', protein: 'N/A', carbs: 'N/A', fats: 'N/A' };
@@ -60,7 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} | Receita Fit Gen</title>
     
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://receita-fit-gen.vercel.app/receita/${id}">
     <meta property="og:title" content="${title}">
@@ -239,6 +241,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
     return res.status(200).send(html);
 
   } catch (error) {

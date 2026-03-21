@@ -52,7 +52,8 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
       : '';
 
     // Link do App para visualização direta com preview profissional (SSR)
-    const appUrl = `${window.location.origin}/receita/${recipe.id}`;
+    // Adiciona um timestamp como cache-buster para forçar o WhatsApp a buscar os dados novos
+    const appUrl = `${window.location.origin}/receita/${recipe.id}?v=${Date.now()}`;
     
     const text = `*Receita Fit:*\n\n${recipe.title.toUpperCase()}\n\n${recipe.description}\n\n*🛒 INGREDIENTES:*\n${ingredientsText}\n\n*👨‍🍳 MODO DE PREPARO:*\n${instructionsText}\n\n*📊 MACROS:* ${recipe.macros.calories} | Prot: ${recipe.macros.protein}\n\n*💰 CUSTO ESTIMADO:* ${recipe.estimatedCost}\n\n*🔗 VEJA NO APP:*\n${appUrl}${imageUrlText}`;
     

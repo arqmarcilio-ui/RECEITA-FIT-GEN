@@ -231,9 +231,12 @@ const App: React.FC = () => {
             console.log("[Storage] Imagem enviada com sucesso:", finalImageUrl);
           }
 
+          // Prepara os dados para o Firestore, removendo a imagem base64 se já tivermos a URL final
+          const { imageUrl: _, ...recipeData } = recipe;
+
           // Salva no Firestore para aparecer no console do Firebase e ser persistente
           const docRef = await addDoc(collection(db, 'recipes'), {
-            ...recipe,
+            ...recipeData,
             userId: user.uid,
             createdAt: serverTimestamp(),
             imageUrl: finalImageUrl,
