@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
 import { db, doc, updateDoc } from '../firebase';
+import { safeSaveToLocalStorage } from '../services/storageService';
 
 interface ResultScreenProps {
   recipe: RecipeResult;

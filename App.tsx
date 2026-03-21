@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { DietaryFilter, MealType, CalorieLevel, Flavor, SkillLevel, UserPreferences, RecipeResult } from './types';
 import { generateRecipe } from './services/geminiService';
+import { safeSaveToLocalStorage } from './services/storageService';
 import SplashScreen from './components/SplashScreen';
 import StepForm from './components/StepForm';
 import ResultScreen from './components/ResultScreen';
@@ -250,14 +251,10 @@ const App: React.FC = () => {
       })();
       
       // Armazenamento local como backup rápido
-      try {
-        const historyStr = localStorage.getItem('fit_gen_hist');
-        let history = historyStr ? JSON.parse(historyStr) : [];
-        const newHistory = [recipe, ...history].slice(0, 20);
-        localStorage.setItem('fit_gen_hist', JSON.stringify(newHistory));
-      } catch (e) {
-        console.error("Erro ao processar histórico local", e);
-      }
+      const historyStr = localStorage.getItem('fit_gen_hist');
+      let history = historyStr ? JSON.parse(historyStr) : [];
+      const newHistory = [recipe, ...history];
+      safeSaveToLocalStorage('fit_gen_hist', newHistory, 20);
       
     } catch (e) {
       console.error(e);
