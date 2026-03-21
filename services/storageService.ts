@@ -20,7 +20,8 @@ export const safeSaveToLocalStorage = (key: string, data: any[], maxItems: numbe
         // Strategy 1: Remove images from all but the most recent 3 items
         const prunedData = data.slice(0, maxItems).map((item, index) => {
           if (index >= 3 && item.imageUrl && item.imageUrl.startsWith('data:')) {
-            return { ...item, imageUrl: 'https://picsum.photos/seed/recipe/800/600' }; // Fallback image
+            // Fallback image único baseado no título para evitar repetição
+            return { ...item, imageUrl: `https://picsum.photos/seed/${encodeURIComponent(item.title)}/800/600` };
           }
           return item;
         });

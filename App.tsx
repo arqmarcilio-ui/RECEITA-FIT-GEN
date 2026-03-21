@@ -204,10 +204,14 @@ const App: React.FC = () => {
   const handleGenerate = async (data: UserPreferences) => {
     if (!isAuthorized || !user) return;
     
+    const currentGenerationId = Math.random().toString(36).substring(7);
+    console.log(`[App] Iniciando geração de receita #${currentGenerationId} para: "${data.flavor}"...`);
+    
     setPrefs(data);
     setView('loading');
     try {
       const recipe = await generateRecipe(data);
+      console.log(`[App] Receita recebida da IA: "${recipe.title}"`);
       
       // Mostra o resultado imediatamente com a imagem base64 (não bloqueia a UI)
       setResult(recipe);
@@ -222,19 +226,22 @@ const App: React.FC = () => {
           if (recipe.imageUrl && recipe.imageUrl.startsWith('data:')) {
             const fileName = `recipes/${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
             const storageRef = ref(storage, fileName);
+            console.log(`[Storage] Iniciando upload para: ${fileName} (Receita: "${recipe.title}")`);
+            
             await uploadString(storageRef, recipe.imageUrl!, 'data_url');
             finalImageUrl = await getDownloadURL(storageRef);
+            console.log(`[Storage] Upload concluído. URL final: ${finalImageUrl}`);
             
-            // Atualiza o estado com a nova URL pública
+            // Atualiza o estado com a nova URL pública apenas se ainda for a receita atual (pelo tempId)
             recipe.imageUrl = finalImageUrl;
-            setResult({ ...recipe });
-            console.log("[Storage] Imagem enviada com sucesso:", finalImageUrl);
+            setResult(prev => (prev && prev.tempId === recipe.tempId ? { ...recipe } : prev));
           }
 
           // Prepara os dados para o Firestore, removendo a imagem base64 se já tivermos a URL final
-          const { imageUrl: _, ...recipeData } = recipe;
+          const { imageUrl: _, tempId: __, ...recipeData } = recipe;
 
           // Salva no Firestore para aparecer no console do Firebase e ser persistente
+          console.log(`[Firestore] Salvando receita: "${recipe.title}"...`);
           const docRef = await addDoc(collection(db, 'recipes'), {
             ...recipeData,
             userId: user.uid,
@@ -243,10 +250,10 @@ const App: React.FC = () => {
             isFavorite: false
           });
           
-          // Atualiza o ID localmente
+          // Atualiza o ID localmente apenas se ainda for a receita atual
           recipe.id = docRef.id;
-          setResult({ ...recipe });
-          console.log("[Firestore] Receita salva com sucesso com ID:", docRef.id);
+          setResult(prev => (prev && prev.tempId === recipe.tempId ? { ...recipe } : prev));
+          console.log(`[Firestore] Receita salva com sucesso. ID: ${docRef.id} (Título: "${recipe.title}")`);
 
         } catch (err) {
           console.error("[Firebase] Erro ao processar persistência:", err);

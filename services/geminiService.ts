@@ -69,21 +69,30 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
     if (!response.text) throw new Error("Resposta vazia do modelo");
     
     const recipeData = JSON.parse(response.text) as RecipeResult;
+    recipeData.tempId = Math.random().toString(36).substring(7);
+    console.log(`[Gemini] Receita gerada: "${recipeData.title}" (tempId: ${recipeData.tempId})`);
 
-    // Gerar imagem do prato com contexto mais rico
+    // Gerar imagem do prato com contexto mais rico e um pouco de aleatoriedade no prompt para evitar repetições
     try {
+      console.log(`[Gemini] Iniciando geração de imagem para: "${recipeData.title}"...`);
+      const seed = Math.floor(Math.random() * 1000);
       const imgResponse = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: `Food photography, high-end restaurant plating: ${recipeData.title}. Healthy ingredients visible, bright natural lighting, macro shot, blurred background, 4k high resolution. No text or logos.`,
+        contents: `Food photography, high-end restaurant plating, unique style #${seed}: ${recipeData.title}. Healthy ingredients visible, bright natural lighting, macro shot, blurred background, 4k high resolution. No text or logos.`,
         config: { imageConfig: { aspectRatio: "1:1" } }
       });
       const part = imgResponse.candidates?.[0]?.content?.parts.find(p => p.inlineData);
       if (part?.inlineData) {
-        recipeData.imageUrl = `data:image/png;base64,${part.inlineData.data}`;
+        const base64 = part.inlineData.data;
+        console.log(`[Gemini] Imagem gerada com sucesso. Base64 (início): ${base64.substring(0, 30)}...`);
+        recipeData.imageUrl = `data:image/png;base64,${base64}`;
+      } else {
+        throw new Error("Nenhuma imagem retornada no payload");
       }
     } catch (e) {
-      console.warn("Image generation failed, using fallback", e);
-      recipeData.imageUrl = "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&q=80&w=800";
+      console.warn(`[Gemini] Falha na geração da imagem para "${recipeData.title}", usando fallback único.`, e);
+      // Fallback único baseado no título para evitar imagens repetidas se a IA falhar
+      recipeData.imageUrl = `https://picsum.photos/seed/${encodeURIComponent(recipeData.title)}/800/800`;
     }
 
     return recipeData;

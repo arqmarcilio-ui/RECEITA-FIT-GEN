@@ -59,6 +59,7 @@ export interface RecipeResult {
   estimatedCost: string;
   estimatedTime: string;
   imageUrl?: string;
+  tempId?: string;
   macros: {
     protein: string;
     carbs: string;
