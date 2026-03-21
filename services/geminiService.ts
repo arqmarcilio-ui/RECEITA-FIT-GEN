@@ -77,22 +77,22 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
     const IMAGE_MODEL = 'gemini-2.5-flash-image';
     
     const generateImage = async (attempt: number): Promise<string | null> => {
-      console.log(`[Image Generation] Iniciando tentativa ${attempt} para: "${recipeData.title}"`);
-      console.log(`[Image Generation] Modelo: ${IMAGE_MODEL}`);
+      console.log(`[Image Generation] início (Tentativa ${attempt})`);
+      console.log(`[Image Model] modelo usado: ${IMAGE_MODEL}`);
       
       const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
       if (!apiKey) {
-        console.error("[Image Generation] ERRO CRÍTICO: Chave de API não está definida!");
+        console.error("[Image Error] ERRO CRÍTICO: Chave de API (GEMINI_API_KEY) não está definida no ambiente!");
       }
 
       try {
         const seed = Math.floor(Math.random() * 1000);
         const imagePrompt = `Realistic food photography of ${recipeData.title}, high quality food photo, professional food styling, top view or restaurant presentation, detailed texture, 4k, appetizing, natural colors. No abstract art, no conceptual images, only real food and ingredients. Style #${seed}`;
         
-        if (attempt > 1) {
-          console.log(`[Image Retry] tentativa ${attempt}`);
+        if (attempt === 2) {
+          console.log(`[Image Retry] tentativa 2`);
         }
-        console.log(`[Image Prompt] ${imagePrompt}`);
+        console.log(`[Image Prompt] prompt enviado: ${imagePrompt}`);
         
         const imgResponse = await ai.models.generateContent({
           model: IMAGE_MODEL,
@@ -100,24 +100,22 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
           config: { imageConfig: { aspectRatio: "1:1" } }
         });
         
-        console.log(`[Image Generation] Resposta da API recebida (Tentativa ${attempt})`);
-        
         if (imgResponse.candidates && imgResponse.candidates.length > 0) {
           const part = imgResponse.candidates[0].content?.parts.find(p => p.inlineData);
           if (part?.inlineData) {
-            console.log(`[Image Generation] sucesso - Imagem gerada via Gemini`);
+            console.log(`[Image API Response] sucesso - Imagem gerada com sucesso`);
+            console.log(`[Image Source] Gemini AI`);
             return `data:image/png;base64,${part.inlineData.data}`;
           } else {
-            console.warn(`[Image Generation] Aviso: Resposta sem dados de imagem (inlineData)`);
+            console.warn(`[Image Error] Resposta sem dados de imagem (inlineData)`);
           }
         } else {
-          console.warn(`[Image Generation] Aviso: Nenhum candidato retornado na resposta`);
+          console.warn(`[Image Error] Nenhum candidato retornado na resposta`);
         }
         return null;
       } catch (e: any) {
-        console.error(`[Image Generation] ERRO na tentativa ${attempt}:`, e);
-        if (e.message) console.error(`[Image Generation] Mensagem de erro: ${e.message}`);
-        if (e.stack) console.error(`[Image Generation] Stack trace: ${e.stack}`);
+        console.error(`[Image Error] erro completo na tentativa ${attempt}:`, e);
+        if (e.message) console.error(`[Image Error] Mensagem: ${e.message}`);
         return null;
       }
     };
@@ -131,10 +129,9 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
 
     if (finalImageUrl) {
       recipeData.imageUrl = finalImageUrl;
-      console.log(`[Image Final] Fonte: Gemini AI`);
     } else {
-      console.log(`[Image Fallback] Entrando em fallback - usando placeholder fixo`);
-      console.log(`[Image Final] Fonte: Placeholder (Unsplash)`);
+      console.log(`[Image Fallback] usando placeholder fixo`);
+      console.log(`[Image Source] Placeholder (Unsplash)`);
       recipeData.imageUrl = FOOD_PLACEHOLDER;
     }
 
