@@ -51,8 +51,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const instructions = recipe.instructions || [];
     const macros = recipe.macros || { calories: 'N/A', protein: 'N/A', carbs: 'N/A', fats: 'N/A' };
 
-    const html = `
-<!DOCTYPE html>
+    const imageMimeType = imageUrl.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+    const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -65,15 +66,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
     <meta property="og:image" content="${imageUrl}">
+    <meta property="og:image:secure_url" content="${imageUrl}">
+    <meta property="og:image:type" content="${imageMimeType}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="${title}">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:site_name" content="Receita Fit Gen">
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://receita-fit-gen.vercel.app/receita/${id}">
-    <meta property="twitter:title" content="${title}">
-    <meta property="twitter:description" content="${description}">
-    <meta property="twitter:image" content="${imageUrl}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://receita-fit-gen.vercel.app/receita/${id}">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${description}">
+    <meta name="twitter:image" content="${imageUrl}">
 
     <style>
         body {
@@ -232,7 +238,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </html>
     `;
 
-    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(200).send(html);
 
   } catch (error) {
