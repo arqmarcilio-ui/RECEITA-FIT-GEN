@@ -72,67 +72,41 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
     recipeData.tempId = Math.random().toString(36).substring(7);
     console.log(`[Gemini] Receita gerada: "${recipeData.title}" (tempId: ${recipeData.tempId})`);
 
-    // Gerar imagem do prato com contexto mais rico e realista
+    // Gerar imagem do prato via API Serverless (OpenAI + Firebase Storage)
     const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
-    const IMAGE_MODEL = 'gemini-2.5-flash-image';
     
-    const generateImage = async (attempt: number): Promise<string | null> => {
-      console.log(`[Image Generation] início (Tentativa ${attempt})`);
-      console.log(`[Image Model] modelo usado: ${IMAGE_MODEL}`);
-      
-      const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
-      if (!apiKey) {
-        console.error("[Image Error] ERRO CRÍTICO: Chave de API (GEMINI_API_KEY) não está definida no ambiente!");
-      }
+    try {
+      console.log(`[Image API] chamando geração de imagem para: ${recipeData.title}`);
+      const imageResponse = await fetch('/api/generate-recipe-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: recipeData.title,
+          description: recipeData.description,
+          ingredients: recipeData.ingredients.join(', '),
+          recipeId: recipeData.tempId
+        })
+      });
 
-      try {
-        const seed = Math.floor(Math.random() * 1000);
-        const imagePrompt = `Realistic food photography of ${recipeData.title}, high quality food photo, professional food styling, top view or restaurant presentation, detailed texture, 4k, appetizing, natural colors. No abstract art, no conceptual images, only real food and ingredients. Style #${seed}`;
-        
-        if (attempt === 2) {
-          console.log(`[Image Retry] tentativa 2`);
-        }
-        console.log(`[Image Prompt] prompt enviado: ${imagePrompt}`);
-        
-        const imgResponse = await ai.models.generateContent({
-          model: IMAGE_MODEL,
-          contents: imagePrompt,
-          config: { imageConfig: { aspectRatio: "1:1" } }
-        });
-        
-        if (imgResponse.candidates && imgResponse.candidates.length > 0) {
-          const part = imgResponse.candidates[0].content?.parts.find(p => p.inlineData);
-          if (part?.inlineData) {
-            console.log(`[Image API Response] sucesso - Imagem gerada com sucesso`);
-            console.log(`[Image Source] Gemini AI`);
-            return `data:image/png;base64,${part.inlineData.data}`;
-          } else {
-            console.warn(`[Image Error] Resposta sem dados de imagem (inlineData)`);
-          }
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        if (imageData.success) {
+          recipeData.imageUrl = imageData.imageUrl;
+          console.log(`[Image Source] OpenAI (via API)`);
         } else {
-          console.warn(`[Image Error] Nenhum candidato retornado na resposta`);
+          console.warn(`[Image API] falha na geração:`, imageData.error);
+          recipeData.imageUrl = FOOD_PLACEHOLDER;
+          console.log(`[Image Source] Placeholder`);
         }
-        return null;
-      } catch (e: any) {
-        console.error(`[Image Error] erro completo na tentativa ${attempt}:`, e);
-        if (e.message) console.error(`[Image Error] Mensagem: ${e.message}`);
-        return null;
+      } else {
+        console.error(`[Image API] erro na requisição: ${imageResponse.statusText}`);
+        recipeData.imageUrl = FOOD_PLACEHOLDER;
+        console.log(`[Image Source] Placeholder`);
       }
-    };
-
-    let finalImageUrl = await generateImage(1);
-    
-    // Retry logic (max 2 attempts total)
-    if (!finalImageUrl) {
-      finalImageUrl = await generateImage(2);
-    }
-
-    if (finalImageUrl) {
-      recipeData.imageUrl = finalImageUrl;
-    } else {
-      console.log(`[Image Fallback] usando placeholder fixo`);
-      console.log(`[Image Source] Placeholder (Unsplash)`);
+    } catch (e) {
+      console.error(`[Image API] exceção:`, e);
       recipeData.imageUrl = FOOD_PLACEHOLDER;
+      console.log(`[Image Source] Placeholder`);
     }
 
     return recipeData;
