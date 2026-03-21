@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/receita/:id", "destination": "/api/receita?id=:id" },
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}

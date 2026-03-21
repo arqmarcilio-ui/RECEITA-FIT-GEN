@@ -50,8 +50,8 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
       ? `\n\n*Imagem:*\n${recipe.imageUrl}` 
       : '';
 
-    // Link do App para visualização direta
-    const appUrl = `${window.location.origin}/?id=${recipe.id}`;
+    // Link do App para visualização direta com preview profissional (SSR)
+    const appUrl = `${window.location.origin}/receita/${recipe.id}`;
     
     const text = `*Receita Fit:*\n\n${recipe.title.toUpperCase()}\n\n${recipe.description}\n\n*🛒 INGREDIENTES:*\n${ingredientsText}\n\n*👨‍🍳 MODO DE PREPARO:*\n${instructionsText}\n\n*📊 MACROS:* ${recipe.macros.calories} | Prot: ${recipe.macros.protein}\n\n*💰 CUSTO ESTIMADO:* ${recipe.estimatedCost}\n\n*🔗 VEJA NO APP:*\n${appUrl}${imageUrlText}`;
     
