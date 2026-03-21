@@ -18,10 +18,11 @@ export const safeSaveToLocalStorage = (key: string, data: any[], maxItems: numbe
       
       try {
         // Strategy 1: Remove images from all but the most recent 3 items
+        const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
         const prunedData = data.slice(0, maxItems).map((item, index) => {
           if (index >= 3 && item.imageUrl && item.imageUrl.startsWith('data:')) {
-            // Fallback image único baseado no título para evitar repetição
-            return { ...item, imageUrl: `https://picsum.photos/seed/${encodeURIComponent(item.title)}/800/600` };
+            // Fallback fixo de comida para economizar espaço no localStorage
+            return { ...item, imageUrl: FOOD_PLACEHOLDER };
           }
           return item;
         });
