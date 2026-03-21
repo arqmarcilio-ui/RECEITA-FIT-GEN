@@ -169,6 +169,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             font-size: 0.9rem;
             padding: 20px 0;
         }
+        .preview-badge {
+            background: #ebf8ff;
+            color: #2b6cb0;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
     </style>
 </head>
 <body>
@@ -176,6 +188,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         <div class="card">
             <img src="${imageUrl}" alt="${title}" class="hero-image">
             <div class="content">
+                <div class="preview-badge">Preview Receita Fit</div>
                 <h1>${title}</h1>
                 <p class="description">${description}</p>
                 
