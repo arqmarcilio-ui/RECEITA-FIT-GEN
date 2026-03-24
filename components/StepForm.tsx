@@ -76,19 +76,19 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel }) 
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 pb-32">
+      <div className="flex-1 overflow-y-auto px-6 py-3 space-y-4 pb-24">
         {step === 1 && (
-          <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+          <div className="space-y-3 animate-in slide-in-from-right-4 duration-300">
             <div className="space-y-1">
-              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Qual seu perfil?</h3>
-              <p className="text-slate-500 text-sm font-medium">Escolha uma ou mais opções.</p>
+              <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Qual seu perfil?</h3>
+              <p className="text-slate-500 text-xs font-medium">Escolha uma ou mais opções.</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {otherFilters.map(f => (
                 <button 
                   key={f} 
                   onClick={() => toggleDietary(f)}
-                  className={`p-5 rounded-[1.5rem] border-2 font-bold text-sm uppercase transition-all ${
+                  className={`p-4 rounded-[1.2rem] border-2 font-bold text-xs uppercase transition-all ${
                     formData.dietaryFilters.includes(f) ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-white text-slate-700 shadow-sm'
                   }`}
                 >
@@ -98,7 +98,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel }) 
               {/* Opção Sem Restrição no final ocupando largura total */}
               <button 
                 onClick={() => toggleDietary(DietaryFilter.SEM_RESTRICAO)}
-                className={`col-span-2 p-5 rounded-[1.5rem] border-2 font-bold text-sm uppercase transition-all ${
+                className={`col-span-2 p-4 rounded-[1.2rem] border-2 font-bold text-xs uppercase transition-all ${
                   formData.dietaryFilters.includes(DietaryFilter.SEM_RESTRICAO) ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-white text-slate-700 shadow-sm'
                 }`}
               >
@@ -109,46 +109,46 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel }) 
         )}
 
         {step === 2 && (
-          <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-            <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Momento do dia</h3>
-            <div className="space-y-3">
+          <div className="space-y-2 animate-in slide-in-from-right-4 duration-300">
+            <h3 className="text-[1.5rem] font-black text-slate-900 uppercase tracking-tighter">Momento do dia</h3>
+            <div className="space-y-1">
               {Object.values(MealType).map(m => (
                 <button 
                   key={m} 
                   onClick={() => selectMealType(m)}
-                  className={`w-full p-5 rounded-[1.5rem] border-2 font-bold text-left transition-all ${
+                  className={`w-full p-[0.9rem] rounded-[1rem] border-2 font-bold text-left transition-all ${
                     formData.mealType === m ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-white text-slate-700 shadow-sm'
                   }`}
                 >
-                  {m}
+                  <span className="text-[0.9rem]">{m}</span>
                 </button>
               ))}
 
               {/* Botão Expansível: Prato específico com mesma formatação das demais */}
-              <div className={`p-5 rounded-[1.5rem] border-2 transition-all cursor-pointer ${showDishInput ? 'border-emerald-500 bg-emerald-50 shadow-md' : 'border-slate-300 bg-white shadow-sm'}`}>
+              <div className={`p-[0.9rem] rounded-[1rem] border-2 transition-all cursor-pointer ${showDishInput ? 'border-emerald-500 bg-emerald-50 shadow-md' : 'border-slate-300 bg-white shadow-sm'}`}>
                 <button 
                   onClick={toggleSpecificDish}
                   className="w-full flex justify-between items-center group text-left"
                 >
-                  <span className={`font-bold transition-colors ${showDishInput ? 'text-emerald-700' : 'text-slate-700'}`}>
+                  <span className={`font-bold text-[0.9rem] transition-colors ${showDishInput ? 'text-emerald-700' : 'text-slate-700'}`}>
                     Prato específico
                   </span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${showDishInput ? 'bg-emerald-500 text-white rotate-45' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'}`}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-4 h-4">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${showDishInput ? 'bg-emerald-500 text-white rotate-45' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'}`}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3.5 h-3.5">
                       <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
                   </div>
                 </button>
                 {showDishInput && (
-                  <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                     <input 
                       autoFocus
                       placeholder="Ex: Panqueca de Aveia, Poke, Wrap..."
-                      className="w-full p-4 bg-white border-2 border-emerald-200 rounded-[1.2rem] font-bold text-slate-800 outline-none focus:border-emerald-500 transition-colors shadow-inner"
+                      className="w-full p-2.5 bg-white border-2 border-emerald-200 rounded-[0.9rem] font-bold text-slate-800 outline-none focus:border-emerald-500 transition-colors shadow-inner text-[0.85rem]"
                       value={formData.dishType}
                       onChange={e => setFormData({...formData, dishType: e.target.value})}
                     />
-                    <p className="mt-2 ml-2 text-[10px] font-black text-emerald-600 uppercase opacity-60">Direcione a IA para o que deseja comer</p>
+                    <p className="mt-1 ml-2 text-[8px] font-black text-emerald-600 uppercase opacity-60">Direcione a IA para o que deseja comer</p>
                   </div>
                 )}
               </div>
@@ -157,68 +157,74 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel }) 
         )}
 
         {step === 3 && (
-          <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-            <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Porções e Calorias</h3>
-            <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-[2rem] border-2 border-slate-200">
-              <button onClick={() => setFormData(p => ({...p, peopleCount: Math.max(1, p.peopleCount-1)}))} className="w-16 h-16 bg-white border-2 border-slate-300 rounded-2xl shadow-sm text-2xl font-black text-slate-700 active:scale-90 transition-transform">-</button>
-              <div className="flex-1 text-center">
-                <p className="text-[10px] font-black text-slate-400 uppercase">Pessoas</p>
-                <p className="text-4xl font-black text-emerald-600">{formData.peopleCount}</p>
+          <div className="space-y-3 animate-in slide-in-from-right-4 duration-300">
+            <div className="space-y-2">
+              <h3 className="text-[1.3rem] font-black text-slate-900 uppercase tracking-tighter">Porções</h3>
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[1rem] border-2 border-slate-200">
+                <button onClick={() => setFormData(p => ({...p, peopleCount: Math.max(1, p.peopleCount-1)}))} className="w-10 h-10 bg-white border-2 border-slate-300 rounded-xl shadow-sm text-lg font-black text-slate-700 active:scale-90 transition-transform">-</button>
+                <div className="flex-1 text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase">Pessoas</p>
+                  <p className="text-2xl font-black text-emerald-600 leading-none">{formData.peopleCount}</p>
+                </div>
+                <button onClick={() => setFormData(p => ({...p, peopleCount: p.peopleCount+1}))} className="w-10 h-10 bg-white border-2 border-slate-300 rounded-xl shadow-sm text-lg font-black text-slate-700 active:scale-90 transition-transform">+</button>
               </div>
-              <button onClick={() => setFormData(p => ({...p, peopleCount: p.peopleCount+1}))} className="w-16 h-16 bg-white border-2 border-slate-300 rounded-2xl shadow-sm text-2xl font-black text-slate-700 active:scale-90 transition-transform">+</button>
             </div>
-            <div className="grid grid-cols-1 gap-2">
-              {Object.values(CalorieLevel).map(c => (
-                <button 
-                  key={c} 
-                  onClick={() => setFormData({...formData, calorieLevel: c})}
-                  className={`p-4 rounded-[1.2rem] border-2 font-bold text-sm text-left transition-all ${
-                    formData.calorieLevel === c ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-white text-slate-700 shadow-sm'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
+
+            <div className="space-y-2">
+              <h3 className="text-[1.3rem] font-black text-slate-900 uppercase tracking-tighter">Calorias</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.values(CalorieLevel).map(c => (
+                  <button 
+                    key={c} 
+                    onClick={() => setFormData({...formData, calorieLevel: c})}
+                    className={`p-2.5 rounded-[0.85rem] border-2 font-bold text-[10.5px] text-left transition-all leading-tight flex items-center min-h-[3.5rem] ${
+                      formData.calorieLevel === c ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-white text-slate-700 shadow-sm'
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
         {step === 4 && (
-          <div className="space-y-12 animate-in slide-in-from-right-4 duration-300">
-            <div className="space-y-6">
-              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Opção de Sabor</h3>
-              <div className="grid grid-cols-1 gap-3">
+          <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
+            <div className="space-y-2.5">
+              <h3 className="text-[1.35rem] font-black text-slate-900 uppercase tracking-tighter">Opção de Sabor</h3>
+              <div className="grid grid-cols-1 gap-1.5">
                 {Object.values(Flavor).map(f => (
                   <button 
                     key={f} 
                     onClick={() => setFormData({...formData, flavor: f})}
-                    className={`p-5 rounded-[1.5rem] border-2 font-black text-lg transition-all text-left flex justify-between items-center ${
+                    className={`p-[0.7rem] rounded-[0.9rem] border-2 font-black text-[0.8rem] transition-all text-left flex justify-between items-center ${
                       formData.flavor === f ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-white text-slate-700 shadow-sm'
                     }`}
                   >
                     <span>{f}</span>
                     {formData.flavor === f && (
-                      <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                     )}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="space-y-6">
-              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Preparo</h3>
-              <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-2.5">
+              <h3 className="text-[1.35rem] font-black text-slate-900 uppercase tracking-tighter">Preparo</h3>
+              <div className="grid grid-cols-1 gap-1.5">
                 {Object.values(SkillLevel).map(s => (
                   <button 
                     key={s} 
                     onClick={() => setFormData({...formData, skillLevel: s})}
-                    className={`p-5 rounded-[1.5rem] border-2 font-black text-lg transition-all text-left flex justify-between items-center ${
+                    className={`p-[0.7rem] rounded-[0.9rem] border-2 font-black text-[0.8rem] transition-all text-left flex justify-between items-center ${
                       formData.skillLevel === s ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-white text-slate-700 shadow-sm'
                     }`}
                   >
                     <span>{s}</span>
                     {formData.skillLevel === s && (
-                      <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                     )}
                   </button>
                 ))}
@@ -229,23 +235,23 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel }) 
 
         {step === 5 && (
           <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-            <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Ingredientes</h3>
-            <div className="space-y-1">
+            <h3 className="text-[1.5rem] font-black text-slate-900 uppercase tracking-tighter">Ingredientes</h3>
+            <div className="space-y-1.5">
               <label className="text-[10px] font-black text-slate-400 uppercase ml-4">O que VOCÊ TEM disponível?</label>
               <textarea 
-                rows={4}
+                rows={3}
                 placeholder="Ex: Frango, batata doce, ovos..."
-                className="w-full p-5 bg-slate-50 border-2 border-slate-300 rounded-[1.5rem] font-bold text-slate-800 outline-none focus:border-emerald-500 shadow-inner"
+                className="w-full p-4 bg-slate-50 border-2 border-slate-300 rounded-[1.2rem] font-bold text-slate-800 outline-none focus:border-emerald-500 shadow-inner text-sm"
                 value={formData.ingredients}
                 onChange={e => setFormData({...formData, ingredients: e.target.value})}
               />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-black text-slate-400 uppercase ml-4">O que EVITAR?</label>
               <textarea 
-                rows={3}
+                rows={2}
                 placeholder="Ex: Coentro, cebola crua..."
-                className="w-full p-5 bg-slate-50 border-2 border-slate-300 rounded-[1.5rem] font-bold text-slate-800 outline-none focus:border-emerald-500 shadow-inner"
+                className="w-full p-4 bg-slate-50 border-2 border-slate-300 rounded-[1.2rem] font-bold text-slate-800 outline-none focus:border-emerald-500 shadow-inner text-sm"
                 value={formData.dispensableIngredients}
                 onChange={e => setFormData({...formData, dispensableIngredients: e.target.value})}
               />
@@ -255,9 +261,9 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel }) 
       </div>
 
       {/* Footer Actions */}
-      <div className="p-6 bg-white border-t border-slate-100 flex gap-4 backdrop-blur-md">
-        <button onClick={handleBack} className="flex-1 py-5 border-2 border-slate-300 text-slate-700 rounded-[1.5rem] font-black uppercase active:bg-slate-50">Voltar</button>
-        <button onClick={handleNext} className="flex-[2] py-5 bg-emerald-500 text-white rounded-[1.5rem] font-black text-xl shadow-xl active:scale-95 transition-all uppercase">
+      <div className="p-5 bg-white border-t border-slate-100 flex gap-3 backdrop-blur-md">
+        <button onClick={handleBack} className="flex-1 py-4 border-2 border-slate-300 text-slate-700 rounded-[1.2rem] font-black uppercase active:bg-slate-50 text-sm">Voltar</button>
+        <button onClick={handleNext} className="flex-[2] py-4 bg-emerald-500 text-white rounded-[1.2rem] font-black text-lg shadow-xl active:scale-95 transition-all uppercase">
           {step === totalSteps ? 'GERAR AGORA' : 'PRÓXIMO'}
         </button>
       </div>

@@ -84,10 +84,13 @@ const App: React.FC = () => {
   });
   const [result, setResult] = useState<RecipeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Monitora estado de autenticação
   useEffect(() => {
+    console.log("[Auth] Iniciando monitoramento de autenticação");
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      console.log("[Auth] Estado de autenticação alterado:", currentUser ? `Usuário logado: ${currentUser.email}` : "Nenhum usuário logado");
       setUser(currentUser);
       if (!currentUser) {
         setIsAuthorized(null);
@@ -100,11 +103,16 @@ const App: React.FC = () => {
 
   // Monitora autorização em tempo real no Firestore
   useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.email) {
+      console.log("[Auth] Sem e-mail de usuário, aguardando...");
+      return;
+    }
 
+    console.log("[Auth] Verificando autorização para:", user.email);
     // O administrador sempre tem acesso
     const userEmail = user.email; 
     if (userEmail && userEmail.toLowerCase() === "arqmarcilio@gmail.com") {
+      console.log("[Auth] Administrador detectado, autorizando automaticamente.");
       setIsAuthorized(true);
       setAuthLoading(false);
       return;
@@ -190,10 +198,12 @@ const App: React.FC = () => {
     setIsAuthorized(null);
     setUnauthorizedEmail(null);
     try {
+      console.log("[Auth] Iniciando login com Google...");
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+      console.log("[Auth] Login com Google concluído.");
+    } catch (error: any) {
       console.error("Erro no login:", error);
-      alert("Erro ao fazer login com Google.");
+      setLoginError(`Erro ao fazer login: ${error.message || "Tente novamente."}`);
       setAuthLoading(false);
     }
   };
@@ -298,6 +308,13 @@ const App: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900 mb-2">
             {!user ? 'Bem-vindo' : 'Acesso Restrito'}
           </h1>
+          
+          {loginError && (
+            <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-2xl text-sm font-bold flex items-center gap-3 mb-4">
+              <ShieldAlert className="w-5 h-5 flex-shrink-0" />
+              <span>{loginError}</span>
+            </div>
+          )}
           
           {user && unauthorizedEmail ? (
             <div className="mb-8">

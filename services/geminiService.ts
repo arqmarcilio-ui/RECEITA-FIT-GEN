@@ -72,41 +72,47 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
     recipeData.tempId = Math.random().toString(36).substring(7);
     console.log(`[Gemini] Receita gerada: "${recipeData.title}" (tempId: ${recipeData.tempId})`);
 
-    // Gerar imagem do prato via API Serverless (OpenAI + Firebase Storage)
+    // Gerar imagem do prato via Gemini Image Generation (mais confiável)
     const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
     
     try {
-      console.log(`[Image API] chamando geração de imagem para: ${recipeData.title}`);
-      const imageResponse = await fetch('/api/generate-recipe-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: recipeData.title,
-          description: recipeData.description,
-          ingredients: recipeData.ingredients.join(', '),
-          recipeId: recipeData.tempId
-        })
+      console.log(`[Gemini Image] Gerando imagem para: ${recipeData.title}`);
+      
+      const imageResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [
+            {
+              text: `Professional food photography of ${recipeData.title}. Description: ${recipeData.description}. High quality, professional food styling, restaurant presentation, appetizing, natural colors.`,
+            },
+          ],
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1"
+          },
+        },
       });
 
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json();
-        if (imageData.success) {
-          recipeData.imageUrl = imageData.imageUrl;
-          console.log(`[Image Source] OpenAI (via API)`);
-        } else {
-          console.warn(`[Image API] falha na geração:`, imageData.error);
-          recipeData.imageUrl = FOOD_PLACEHOLDER;
-          console.log(`[Image Source] Placeholder`);
+      let foundImage = false;
+      if (imageResponse.candidates?.[0]?.content?.parts) {
+        for (const part of imageResponse.candidates[0].content.parts) {
+          if (part.inlineData) {
+            recipeData.imageUrl = `data:image/png;base64,${part.inlineData.data}`;
+            console.log(`[Image Source] Gemini Image Generation`);
+            foundImage = true;
+            break;
+          }
         }
-      } else {
-        console.error(`[Image API] erro na requisição: ${imageResponse.statusText}`);
+      }
+
+      if (!foundImage) {
+        console.warn(`[Gemini Image] Nenhuma imagem retornada pelo modelo.`);
         recipeData.imageUrl = FOOD_PLACEHOLDER;
-        console.log(`[Image Source] Placeholder`);
       }
     } catch (e) {
-      console.error(`[Image API] exceção:`, e);
+      console.error(`[Gemini Image] erro na geração:`, e);
       recipeData.imageUrl = FOOD_PLACEHOLDER;
-      console.log(`[Image Source] Placeholder`);
     }
 
     return recipeData;
