@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Title and recipeId are required' });
   }
 
-  console.log(`[Image API] início - Gerando imagem para: ${title}`);
+  console.log(`[Image API] chamando geração para: ${title}`);
 
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,

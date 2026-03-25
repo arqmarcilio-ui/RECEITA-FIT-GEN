@@ -72,46 +72,41 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
     recipeData.tempId = Math.random().toString(36).substring(7);
     console.log(`[Gemini] Receita gerada: "${recipeData.title}" (tempId: ${recipeData.tempId})`);
 
-    // Gerar imagem do prato via Gemini Image Generation (mais confiável)
+    // Gerar imagem do prato via OpenAI (backend)
     const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
     
     try {
-      console.log(`[Gemini Image] Gerando imagem para: ${recipeData.title}`);
+      console.log(`[Image API] chamando geração para: ${recipeData.title}`);
       
-      const imageResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: `Professional food photography of ${recipeData.title}. Description: ${recipeData.description}. High quality, professional food styling, restaurant presentation, appetizing, natural colors.`,
-            },
-          ],
+      const imageResponse = await fetch('/api/generate-recipe-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        config: {
-          imageConfig: {
-            aspectRatio: "1:1"
-          },
-        },
+        body: JSON.stringify({
+          title: recipeData.title,
+          description: recipeData.description,
+          ingredients: recipeData.ingredients.join(', '),
+          recipeId: recipeData.tempId,
+        }),
       });
 
-      let foundImage = false;
-      if (imageResponse.candidates?.[0]?.content?.parts) {
-        for (const part of imageResponse.candidates[0].content.parts) {
-          if (part.inlineData) {
-            recipeData.imageUrl = `data:image/png;base64,${part.inlineData.data}`;
-            console.log(`[Image Source] Gemini Image Generation`);
-            foundImage = true;
-            break;
-          }
-        }
+      if (!imageResponse.ok) {
+        throw new Error(`Erro HTTP: ${imageResponse.status}`);
       }
 
-      if (!foundImage) {
-        console.warn(`[Gemini Image] Nenhuma imagem retornada pelo modelo.`);
+      const imageData = await imageResponse.json();
+      
+      if (imageData.imageUrl) {
+        console.log(`[Image API] resposta recebida`);
+        console.log(`[Image Source] OpenAI`);
+        recipeData.imageUrl = imageData.imageUrl;
+      } else {
+        console.warn(`[Image API] Nenhuma imagem retornada pela API.`);
         recipeData.imageUrl = FOOD_PLACEHOLDER;
       }
     } catch (e) {
-      console.error(`[Gemini Image] erro na geração:`, e);
+      console.error(`[Image API] erro na geração:`, e);
       recipeData.imageUrl = FOOD_PLACEHOLDER;
     }
 
