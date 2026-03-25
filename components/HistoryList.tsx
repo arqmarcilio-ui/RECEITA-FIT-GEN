@@ -1,14 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
-import { db, auth, collection, query, where, orderBy, getDocs, deleteDoc, doc } from '../firebase';
+import { db, auth, collection, query, where, orderBy, getDocs } from '../firebase';
+import { Language, translations } from '../translations';
 
 interface HistoryListProps {
   onSelect: (r: RecipeResult) => void;
   onBack: () => void;
+  language: Language;
 }
 
-const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
+const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack, language }) => {
+  const t = translations[language];
   const [hist, setHist] = useState<RecipeResult[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,24 +45,19 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
     fetchHistory();
   }, []);
 
-  const clear = () => {
-    alert("Para limpar o histórico permanentemente, você pode gerenciar os documentos no Console do Firebase.");
-  };
-
   return (
     <div className="h-screen bg-slate-50 p-6 flex flex-col">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">Histórico</h2>
-        <button onClick={clear} className="text-[10px] font-black text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase">Info</button>
+        <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">{t.historyTitle}</h2>
       </div>
       <div className="flex-1 overflow-y-auto space-y-4 pb-24">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-300 italic font-black">
-            <p>Carregando...</p>
+            <p>{t.verifyingAuth}</p>
           </div>
         ) : hist.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-300 italic font-black">
-            <p>Nada por aqui.</p>
+            <p>{t.noHistory}</p>
           </div>
         ) : (
           hist.map((r, i) => (
@@ -78,7 +76,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
         )}
       </div>
       <div className="fixed bottom-0 left-0 w-full p-6 bg-white border-t border-slate-100">
-        <button onClick={onBack} className="w-full py-5 bg-emerald-500 text-white font-black rounded-[1.5rem] active:scale-95 transition-all uppercase">Voltar ao Início</button>
+        <button onClick={onBack} className="w-full py-5 bg-emerald-500 text-white font-black rounded-[1.5rem] active:scale-95 transition-all uppercase">{t.back}</button>
       </div>
     </div>
   );

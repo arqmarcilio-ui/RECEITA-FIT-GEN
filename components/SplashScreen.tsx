@@ -1,15 +1,42 @@
 
 import React from 'react';
+import { Language, translations } from '../translations';
 
 interface SplashScreenProps {
   onStart: () => void;
   onOpenFavorites: () => void;
   onOpenHistory: () => void;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
 }
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ onStart, onOpenFavorites, onOpenHistory }) => {
+const SplashScreen: React.FC<SplashScreenProps> = ({ 
+  onStart, 
+  onOpenFavorites, 
+  onOpenHistory,
+  language,
+  onLanguageChange
+}) => {
+  const t = translations[language];
+
   return (
     <div className="flex flex-col items-center justify-center h-screen p-8 text-center bg-white relative overflow-hidden">
+      {/* Language Selector */}
+      <div className="absolute top-4 left-4 z-50 flex gap-2">
+        <button 
+          onClick={() => onLanguageChange('pt')}
+          className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${language === 'pt' ? 'bg-emerald-500 text-white shadow-md' : 'bg-white/80 text-slate-600 hover:bg-white border border-slate-200'}`}
+        >
+          <span className="text-base">🇧🇷</span> PT
+        </button>
+        <button 
+          onClick={() => onLanguageChange('en')}
+          className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${language === 'en' ? 'bg-emerald-500 text-white shadow-md' : 'bg-white/80 text-slate-600 hover:bg-white border border-slate-200'}`}
+        >
+          <span className="text-base">🇺🇸</span> EN
+        </button>
+      </div>
+
       {/* Decorative background */}
       <div className="absolute top-[-10%] right-[-10%] w-80 h-80 bg-emerald-50 rounded-full blur-3xl opacity-60"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-80 h-80 bg-slate-100 rounded-full blur-3xl opacity-60"></div>
@@ -29,10 +56,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart, onOpenFavorites, o
           </div>
           
           <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9]">
-            RECEITA FIT<br/><span className="text-emerald-500">GEN</span>
+            {t.appName.split(' ')[0]}<br/><span className="text-emerald-500">{t.appName.split(' ').slice(1).join(' ')}</span>
           </h1>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-6 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100">
-            Smart Nutrition AI
+            {t.appSubtitle}
           </p>
         </div>
 
@@ -41,28 +68,28 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart, onOpenFavorites, o
             onClick={onStart}
             className="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-2xl transition-all shadow-2xl active:scale-95 uppercase tracking-tight"
           >
-            Começar
+            {t.start}
           </button>
           <div className="grid grid-cols-2 gap-3">
             <button 
               onClick={onOpenFavorites}
               className="py-5 bg-white border-2 border-emerald-500 text-emerald-600 rounded-[1.8rem] font-black text-sm transition-all active:scale-95 uppercase"
             >
-              Salvas
+              {t.favorites}
             </button>
             <button 
               onClick={onOpenHistory}
               className="py-5 bg-white border-2 border-slate-300 text-slate-700 rounded-[1.8rem] font-black text-sm transition-all active:scale-95 uppercase"
             >
-              Histórico
+              {t.history}
             </button>
           </div>
         </div>
       </div>
       
       <div className="absolute bottom-8 flex flex-col items-center gap-1 text-slate-300 text-[10px] font-black uppercase tracking-widest">
-        <div>Powered by Google Gemini 3</div>
-        <div className="text-slate-500 font-bold">VERSÃO 1.2</div>
+        <div>{t.poweredBy}</div>
+        <div className="text-slate-500 font-bold">{t.version} 1.2</div>
       </div>
     </div>
   );

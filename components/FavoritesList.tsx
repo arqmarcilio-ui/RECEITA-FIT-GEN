@@ -2,13 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
 import { db, auth, collection, query, where, getDocs } from '../firebase';
+import { Language, translations } from '../translations';
 
 interface FavoritesListProps {
   onSelect: (r: RecipeResult) => void;
   onBack: () => void;
+  language: Language;
 }
 
-const FavoritesList: React.FC<FavoritesListProps> = ({ onSelect, onBack }) => {
+const FavoritesList: React.FC<FavoritesListProps> = ({ onSelect, onBack, language }) => {
+  const t = translations[language];
   const [favs, setFavs] = useState<RecipeResult[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,15 +46,15 @@ const FavoritesList: React.FC<FavoritesListProps> = ({ onSelect, onBack }) => {
 
   return (
     <div className="h-screen bg-slate-50 p-6 flex flex-col">
-      <h2 className="text-4xl font-black text-slate-900 mb-8 uppercase tracking-tighter">Receitas <span className="text-emerald-500">Salvas</span></h2>
+      <h2 className="text-4xl font-black text-slate-900 mb-8 uppercase tracking-tighter">{t.favoritesTitle.split(' ')[0]} <span className="text-emerald-500">{t.favoritesTitle.split(' ').slice(1).join(' ')}</span></h2>
       <div className="flex-1 overflow-y-auto space-y-4 pb-24">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-300 italic font-black">
-            <p>Carregando...</p>
+            <p>{t.verifyingAuth}</p>
           </div>
         ) : favs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-300 italic font-black">
-            <p>Nenhuma receita salva ainda.</p>
+            <p>{t.noFavorites}</p>
           </div>
         ) : (
           favs.map((r, i) => (
@@ -70,7 +73,7 @@ const FavoritesList: React.FC<FavoritesListProps> = ({ onSelect, onBack }) => {
         )}
       </div>
       <div className="fixed bottom-0 left-0 w-full p-6 bg-white border-t border-slate-100">
-        <button onClick={onBack} className="w-full py-5 bg-emerald-500 text-white font-black rounded-[1.5rem] active:scale-95 transition-all uppercase">Voltar ao Início</button>
+        <button onClick={onBack} className="w-full py-5 bg-emerald-500 text-white font-black rounded-[1.5rem] active:scale-95 transition-all uppercase">{t.back}</button>
       </div>
     </div>
   );

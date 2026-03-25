@@ -3,13 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
 import { db, doc, updateDoc } from '../firebase';
 import { safeSaveToLocalStorage } from '../services/storageService';
+import { Language, translations } from '../translations';
 
 interface ResultScreenProps {
   recipe: RecipeResult;
   onBack: () => void;
+  language: Language;
 }
 
-const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
+const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack, language }) => {
+  const t = translations[language];
   const [isFav, setIsFav] = useState(recipe.isFavorite || false);
 
   useEffect(() => {
@@ -55,13 +58,13 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
     // Adiciona um timestamp como cache-buster para forçar o WhatsApp a buscar os dados novos
     const appUrl = `${window.location.origin}/receita/${recipe.id}?v=${Date.now()}`;
     
-    const text = `*Receita Fit:*\n\n${recipe.title.toUpperCase()}\n\n${recipe.description}\n\n*🛒 INGREDIENTES:*\n${ingredientsText}\n\n*👨‍🍳 MODO DE PREPARO:*\n${instructionsText}\n\n*📊 MACROS:* ${recipe.macros.calories} | Prot: ${recipe.macros.protein}\n\n*💰 CUSTO ESTIMADO:* ${recipe.estimatedCost}\n\n*🔗 VEJA NO APP:*\n${appUrl}${imageUrlText}`;
+    const text = `*${t.recipeResult}:*\n\n${recipe.title.toUpperCase()}\n\n${recipe.description}\n\n*🛒 ${t.ingredientsList.toUpperCase()}:*\n${ingredientsText}\n\n*👨‍🍳 ${t.instructionsList.toUpperCase()}:*\n${instructionsText}\n\n*📊 ${t.macros.toUpperCase()}:* ${recipe.macros.calories} | ${t.protein}: ${recipe.macros.protein}\n\n*💰 ${t.estimatedCost.toUpperCase()}:* ${recipe.estimatedCost}\n\n*🔗 VEJA NO APP:*\n${appUrl}${imageUrlText}`;
     
     // Tenta usar a Web Share API para enviar com imagem (funciona melhor em dispositivos móveis)
     if (navigator.share) {
       try {
         const shareData: any = {
-          title: `Receita: ${recipe.title}`,
+          title: `${t.recipeResult}: ${recipe.title}`,
           text: text,
         };
 
@@ -122,9 +125,9 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
 
         {/* Macros Board */}
         <div className="grid grid-cols-4 gap-2 p-5 bg-slate-900 rounded-[2.5rem] text-white text-center shadow-2xl">
-          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">Prot</p><p className="font-black text-lg">{recipe.macros.protein}</p></div>
-          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">Carb</p><p className="font-black text-lg">{recipe.macros.carbs}</p></div>
-          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">Gord</p><p className="font-black text-lg">{recipe.macros.fats}</p></div>
+          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">{t.protein.substring(0, 4)}</p><p className="font-black text-lg">{recipe.macros.protein}</p></div>
+          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">{t.carbs.substring(0, 4)}</p><p className="font-black text-lg">{recipe.macros.carbs}</p></div>
+          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">{t.fats.substring(0, 4)}</p><p className="font-black text-lg">{recipe.macros.fats}</p></div>
           <div><p className="text-[9px] opacity-60 uppercase font-black mb-1">Kcal</p><p className="font-black text-lg">{recipe.macros.calories}</p></div>
         </div>
 
@@ -133,7 +136,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
         {/* Section: Ingredients */}
         <section className="bg-emerald-50/50 p-6 rounded-[2rem] border-2 border-emerald-50">
           <h3 className="text-xl font-black text-emerald-700 uppercase mb-4 tracking-tight flex items-center gap-2">
-            <span className="w-2 h-8 bg-emerald-500 rounded-full"></span> Ingredientes
+            <span className="w-2 h-8 bg-emerald-500 rounded-full"></span> {t.ingredientsList}
           </h3>
           <ul className="space-y-3">
             {recipe.ingredients.map((ing, i) => (
@@ -147,7 +150,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
         {/* Section: Preparation */}
         <section className="pb-10">
           <h3 className="text-xl font-black text-slate-900 uppercase mb-6 tracking-tight flex items-center gap-2">
-            <span className="w-2 h-8 bg-slate-900 rounded-full"></span> Modo de Preparo
+            <span className="w-2 h-8 bg-slate-900 rounded-full"></span> {t.instructionsList}
           </h3>
           <div className="space-y-6">
             {recipe.instructions.map((step, i) => (
@@ -162,7 +165,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack }) => {
 
       {/* Sticky Actions */}
       <div className="fixed bottom-0 left-0 w-full p-6 bg-white/80 backdrop-blur-xl border-t border-slate-100 grid grid-cols-2 gap-4 z-20">
-        <button onClick={onBack} className="py-5 bg-slate-100 text-slate-700 font-black rounded-[1.5rem] uppercase active:scale-95 transition-all border-2 border-slate-200">Início</button>
+        <button onClick={onBack} className="py-5 bg-slate-100 text-slate-700 font-black rounded-[1.5rem] uppercase active:scale-95 transition-all border-2 border-slate-200">{t.start}</button>
         <button onClick={shareWA} className="py-5 bg-emerald-500 text-white font-black rounded-[1.5rem] shadow-xl active:scale-95 transition-all uppercase flex items-center justify-center gap-2">
            WhatsApp
         </button>

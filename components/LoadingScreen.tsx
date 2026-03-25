@@ -1,23 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
+import { Language, translations } from '../translations';
 
-const LoadingScreen: React.FC = () => {
+interface LoadingScreenProps {
+  language: Language;
+}
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ language }) => {
+  const t = translations[language];
   const [messageIndex, setMessageIndex] = useState(0);
-  const messages = [
-    "Analisando seu perfil nutricional...",
-    "Selecionando ingredientes frescos...",
-    "Equilibrando os macronutrientes...",
-    "Ajustando o sabor perfeito...",
-    "Calculando estimativas de custo...",
-    "Finalizando sua receita exclusiva..."
-  ];
+  const messages = t.loadingMessages;
 
   useEffect(() => {
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % messages.length);
     }, 2500);
     return () => clearInterval(interval);
-  }, []);
+  }, [messages.length]);
 
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-white p-10 space-y-12 animate-in fade-in duration-700">
@@ -27,7 +26,7 @@ const LoadingScreen: React.FC = () => {
       </div>
       <div className="text-center space-y-6 max-w-xs">
         <h2 className="text-4xl font-black text-slate-900 uppercase leading-none">
-          Criando sua<br/><span className="text-emerald-500">Refeição</span>
+          {t.loadingTitle}<br/><span className="text-emerald-500">{t.loadingSubtitle}</span>
         </h2>
         <div className="h-8 overflow-hidden">
           <p key={messageIndex} className="text-slate-400 font-bold italic text-lg animate-in slide-in-from-bottom-2 duration-500">

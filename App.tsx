@@ -9,6 +9,7 @@ import ResultScreen from './components/ResultScreen';
 import FavoritesList from './components/FavoritesList';
 import HistoryList from './components/HistoryList';
 import LoadingScreen from './components/LoadingScreen';
+import { Language, translations } from './translations';
 import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, getDocFromServer, storage, ref, uploadString, getDownloadURL, collection, addDoc, serverTimestamp } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { LogOut, ShieldAlert } from 'lucide-react';
@@ -71,6 +72,8 @@ const App: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [unauthorizedEmail, setUnauthorizedEmail] = useState<string | null>(null);
   const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist'>('splash');
+  const [language, setLanguage] = useState<Language>('pt');
+  const t = translations[language];
   const [prefs, setPrefs] = useState<UserPreferences>({
     dietaryFilters: [DietaryFilter.SEM_RESTRICAO], // Inicia com Sem Restrição
     mealType: MealType.ALMOCO,
@@ -293,7 +296,7 @@ const App: React.FC = () => {
 
   // Tela de carregamento inicial do Firebase
   if (authLoading && user) {
-    return <LoadingScreen />;
+    return <LoadingScreen language={language} />;
   }
 
   // Se não estiver logado ou não autorizado
@@ -306,7 +309,7 @@ const App: React.FC = () => {
           </div>
           
           <h1 className="text-2xl font-bold text-slate-900 mb-2">
-            {!user ? 'Bem-vindo' : 'Acesso Restrito'}
+            {!user ? t.welcome : t.restrictedAccess}
           </h1>
           
           {loginError && (
@@ -318,15 +321,15 @@ const App: React.FC = () => {
           
           {user && unauthorizedEmail ? (
             <div className="mb-8">
-              <p className="text-red-500 font-medium mb-4">Acesso não autorizado para este e-mail.</p>
-              <p className="text-slate-500 text-sm mb-4">Entre em contato com o administrador para solicitar acesso.</p>
+              <p className="text-red-500 font-medium mb-4">{t.unauthorizedEmail}</p>
+              <p className="text-slate-500 text-sm mb-4">{t.contactAdmin}</p>
               <p className="text-slate-400 text-xs italic">Email: {unauthorizedEmail}</p>
             </div>
           ) : (
             <p className="text-slate-500 mb-8">
               {!user 
-                ? 'Faça login para acessar o gerador de receitas saudáveis.' 
-                : 'Verificando sua autorização...'}
+                ? t.loginToAccess 
+                : t.verifyingAuth}
             </p>
           )}
 
@@ -338,7 +341,7 @@ const App: React.FC = () => {
               }}
               className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-3"
             >
-              Tentar Novamente
+              {t.tryAgain}
             </button>
 
             <button
@@ -346,7 +349,7 @@ const App: React.FC = () => {
               className="w-full py-4 bg-white border-2 border-emerald-500 text-emerald-600 rounded-2xl font-bold transition-all flex items-center justify-center gap-3"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 bg-white rounded-full p-0.5" />
-              {user ? 'Trocar de Conta' : 'Entrar com Google'}
+              {user ? t.changeAccount : t.signInWithGoogle}
             </button>
 
             {user && (
@@ -355,7 +358,7 @@ const App: React.FC = () => {
                 className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-medium transition-all flex items-center justify-center gap-2"
               >
                 <LogOut className="w-4 h-4" />
-                Sair
+                {t.signOut}
               </button>
             )}
           </div>
@@ -375,7 +378,7 @@ const App: React.FC = () => {
         <LogOut className="w-5 h-5" />
       </button>
 
-      {view === 'splash' && <SplashScreen onStart={() => setView('form')} onOpenFavorites={() => setView('favs')} onOpenHistory={() => setView('hist')} />}
+      {view === 'splash' && <SplashScreen language={language} onLanguageChange={setLanguage} onStart={() => setView('form')} onOpenFavorites={() => setView('favs')} onOpenHistory={() => setView('hist')} />}
       
       {view === 'form' && (
         <div className="relative h-full">
@@ -383,7 +386,7 @@ const App: React.FC = () => {
             <div className="absolute top-4 left-4 right-4 z-50 bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-4">
               <ShieldAlert className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-red-800 font-bold text-sm">Erro na Geração</p>
+                <p className="text-red-800 font-bold text-sm">{t.errorTitle}</p>
                 <p className="text-red-600 text-[10px]">{error}</p>
               </div>
               <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
@@ -393,17 +396,17 @@ const App: React.FC = () => {
               </button>
             </div>
           )}
-          <StepForm initialData={prefs} onCancel={() => setView('splash')} onSubmit={handleGenerate} />
+          <StepForm initialData={prefs} language={language} onCancel={() => setView('splash')} onSubmit={handleGenerate} />
         </div>
       )}
       
-      {view === 'loading' && <LoadingScreen />}
+      {view === 'loading' && <LoadingScreen language={language} />}
 
-      {view === 'result' && result && <ResultScreen recipe={result} onBack={() => setView('splash')} />}
+      {view === 'result' && result && <ResultScreen recipe={result} language={language} onBack={() => setView('splash')} />}
       
-      {view === 'favs' && <FavoritesList onSelect={(r) => { setResult(r); setView('result'); }} onBack={() => setView('splash')} />}
+      {view === 'favs' && <FavoritesList language={language} onSelect={(r) => { setResult(r); setView('result'); }} onBack={() => setView('splash')} />}
       
-      {view === 'hist' && <HistoryList onSelect={(r) => { setResult(r); setView('result'); }} onBack={() => setView('splash')} />}
+      {view === 'hist' && <HistoryList language={language} onSelect={(r) => { setResult(r); setView('result'); }} onBack={() => setView('splash')} />}
     </div>
   );
 };
