@@ -1,174 +1,244 @@
 
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
-import { db, doc, updateDoc } from '../firebase';
-import { safeSaveToLocalStorage } from '../services/storageService';
-import { Language, translations } from '../translations';
+import { translations, Language } from '../translations';
+import { 
+  ArrowLeft, 
+  Heart, 
+  Share2, 
+  Clock, 
+  DollarSign, 
+  CheckCircle2, 
+  ShoppingCart, 
+  UtensilsCrossed,
+  Info,
+  ChevronRight
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ResultScreenProps {
   recipe: RecipeResult;
-  onBack: () => void;
   language: Language;
+  onBack: () => void;
 }
 
-const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, onBack, language }) => {
+const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack }) => {
   const t = translations[language];
-  const [isFav, setIsFav] = useState(recipe.isFavorite || false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [showShoppingList, setShowShoppingList] = useState(false);
+  const [checkedIngredients, setCheckedIngredients] = useState<string[]>([]);
 
   useEffect(() => {
-    setIsFav(recipe.isFavorite || false);
-  }, [recipe.id, recipe.isFavorite]);
+    const favsStr = localStorage.getItem('fit_gen_favs');
+    if (favsStr) {
+      const favs = JSON.parse(favsStr);
+      setIsFavorite(favs.some((f: RecipeResult) => f.id === recipe.id || f.tempId === recipe.tempId));
+    }
+  }, [recipe.id, recipe.tempId]);
 
-  const toggleFav = async () => {
-    const newFavStatus = !isFav;
-    setIsFav(newFavStatus);
+  const toggleFavorite = () => {
+    const favsStr = localStorage.getItem('fit_gen_favs');
+    let favs = favsStr ? JSON.parse(favsStr) : [];
     
-    // Atualiza no Firestore se houver um ID
-    if (recipe.id) {
-      try {
-        await updateDoc(doc(db, 'recipes', recipe.id), {
-          isFavorite: newFavStatus
-        });
-        recipe.isFavorite = newFavStatus;
-      } catch (e) {
-        console.error("Erro ao atualizar favorito no Firestore:", e);
-      }
+    if (isFavorite) {
+      favs = favs.filter((f: RecipeResult) => f.id !== recipe.id && f.tempId !== recipe.tempId);
+    } else {
+      favs.push({ ...recipe, isFavorite: true });
     }
-
-    // Mantém o localStorage como backup
-    try {
-      const favs = JSON.parse(localStorage.getItem('fit_gen_favs') || '[]');
-      const newFavs = newFavStatus ? [...favs, recipe] : favs.filter((f: RecipeResult) => f.title !== recipe.title);
-      localStorage.setItem('fit_gen_favs', JSON.stringify(newFavs));
-    } catch (e) {
-      console.error("Error toggling favorite local", e);
-    }
+    
+    localStorage.setItem('fit_gen_favs', JSON.stringify(favs));
+    setIsFavorite(!isFavorite);
   };
 
-  const shareWA = async () => {
-    const ingredientsText = recipe.ingredients.map(ing => `• ${ing}`).join('\n');
-    const instructionsText = recipe.instructions.map((step, i) => `${i + 1}. ${step}`).join('\n');
-    
-    // Se a imagem for uma URL (não base64), inclui no texto
-    const imageUrlText = (recipe.imageUrl && !recipe.imageUrl.startsWith('data:')) 
-      ? `\n\n*Imagem:*\n${recipe.imageUrl}` 
-      : '';
-
-    // Link do App para visualização direta com preview profissional (SSR)
-    // Adiciona um timestamp como cache-buster para forçar o WhatsApp a buscar os dados novos
-    const appUrl = `${window.location.origin}/receita/${recipe.id}?v=${Date.now()}`;
-    
-    const text = `*${t.recipeResult}:*\n\n${recipe.title.toUpperCase()}\n\n${recipe.description}\n\n*🛒 ${t.ingredientsList.toUpperCase()}:*\n${ingredientsText}\n\n*👨‍🍳 ${t.instructionsList.toUpperCase()}:*\n${instructionsText}\n\n*📊 ${t.macros.toUpperCase()}:* ${recipe.macros.calories} | ${t.protein}: ${recipe.macros.protein}\n\n*💰 ${t.estimatedCost.toUpperCase()}:* ${recipe.estimatedCost}\n\n*🔗 VEJA NO APP:*\n${appUrl}${imageUrlText}`;
-    
-    // Tenta usar a Web Share API para enviar com imagem (funciona melhor em dispositivos móveis)
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}?id=${recipe.id || recipe.tempId}`;
     if (navigator.share) {
       try {
-        const shareData: any = {
-          title: `${t.recipeResult}: ${recipe.title}`,
-          text: text,
-        };
-
-        // Se houver imagem e for base64, tenta converter para arquivo
-        if (recipe.imageUrl && recipe.imageUrl.startsWith('data:')) {
-          try {
-            const response = await fetch(recipe.imageUrl);
-            const blob = await response.blob();
-            const file = new File([blob], 'receita-fit.png', { type: 'image/png' });
-            
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-              shareData.files = [file];
-            }
-          } catch (imgErr) {
-            console.warn("Não foi possível processar a imagem para compartilhamento", imgErr);
-          }
-        }
-
-        await navigator.share(shareData);
-        return;
-      } catch (e) {
-        // Se o usuário cancelar ou der erro, não faz nada ou segue para o fallback
-        console.log("Compartilhamento cancelado ou não suportado", e);
+        await navigator.share({
+          title: recipe.title,
+          text: recipe.description,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error("Erro ao compartilhar:", err);
       }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert('Link copiado para a área de transferência!');
     }
-
-    // Fallback para o link direto do WhatsApp (apenas texto)
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
+  const toggleIngredient = (ing: string) => {
+    setCheckedIngredients(prev => 
+      prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]
+    );
+  };
+
+  const MacroBar = ({ label, value, color, percentage }: { label: string, value: string, color: string, percentage: number }) => (
+    <div className="space-y-1.5">
+      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-olive/60">
+        <span>{label}</span>
+        <span className="text-ink">{value}</span>
+      </div>
+      <div className="h-1.5 w-full bg-olive/5 rounded-full overflow-hidden">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.min(percentage, 100)}%` }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className={`h-full ${color} rounded-full`}
+        />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="h-screen bg-white overflow-y-auto pb-32">
-      {/* Hero Image */}
-      <div className="relative h-96">
-        <img src={recipe.imageUrl} className="w-full h-full object-cover" alt={recipe.title} />
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
-        <button 
-          onClick={toggleFav}
-          className={`absolute top-6 right-6 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all ${
-            isFav ? 'bg-red-500 text-white' : 'bg-white text-slate-400 border-2 border-slate-100'
-          }`}
-        >
-          <svg className="w-8 h-8" fill={isFav ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
+    <div className="flex flex-col min-h-screen bg-white pb-32">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-8 py-6 flex items-center justify-between">
+        <button onClick={onBack} className="p-3 bg-slate-100 text-slate-900 rounded-full hover:bg-slate-200 transition-all">
+          <ArrowLeft className="w-5 h-5" />
         </button>
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">{t.recipeResult}</h2>
+        <div className="flex gap-2">
+          <button 
+            onClick={toggleFavorite}
+            className={`p-3 rounded-full transition-all ${isFavorite ? 'bg-rose-50 text-rose-500' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}
+          >
+            <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+          </button>
+          <button onClick={handleShare} className="p-3 bg-slate-100 text-slate-900 rounded-full hover:bg-slate-200 transition-all">
+            <Share2 className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="px-6 -mt-16 relative z-10 space-y-8">
-        <div className="space-y-3">
-          <h1 className="text-4xl font-black text-slate-900 leading-[1.1]">{recipe.title}</h1>
-          <div className="flex gap-2">
-            <span className="px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase border border-emerald-100">{recipe.estimatedTime}</span>
-            <span className="px-4 py-1.5 bg-yellow-50 text-yellow-700 rounded-full text-[10px] font-black uppercase border border-yellow-100">{recipe.estimatedCost}</span>
+      <div className="px-8 space-y-10">
+        {/* Hero Section */}
+        <div className="space-y-6">
+          <div className="relative rounded-[2.5rem] overflow-hidden aspect-video shadow-2xl">
+            <img 
+              src={recipe.imageUrl || `https://picsum.photos/seed/${recipe.id}/800/450`} 
+              alt={recipe.title}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="space-y-3">
+            <h1 className="text-5xl font-black text-slate-900 uppercase leading-none tracking-tighter">
+              {recipe.title}
+            </h1>
+            <p className="text-slate-400 font-bold text-sm uppercase tracking-tight leading-relaxed">
+              {recipe.description}
+            </p>
           </div>
         </div>
 
-        {/* Macros Board */}
-        <div className="grid grid-cols-4 gap-2 p-5 bg-slate-900 rounded-[2.5rem] text-white text-center shadow-2xl">
-          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">{t.protein.substring(0, 4)}</p><p className="font-black text-lg">{recipe.macros.protein}</p></div>
-          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">{t.carbs.substring(0, 4)}</p><p className="font-black text-lg">{recipe.macros.carbs}</p></div>
-          <div className="border-r border-white/10"><p className="text-[9px] opacity-60 uppercase font-black mb-1">{t.fats.substring(0, 4)}</p><p className="font-black text-lg">{recipe.macros.fats}</p></div>
-          <div><p className="text-[9px] opacity-60 uppercase font-black mb-1">Kcal</p><p className="font-black text-lg">{recipe.macros.calories}</p></div>
+        {/* Macros Grid */}
+        <div className="grid grid-cols-4 gap-3">
+          <div className="p-5 bg-slate-100 rounded-3xl text-center space-y-1">
+            <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest">CAL</p>
+            <p className="text-sm font-black text-slate-900">{recipe.macros.calories}</p>
+          </div>
+          <div className="p-5 bg-emerald-50 rounded-3xl text-center space-y-1">
+            <p className="text-[8px] font-black uppercase text-emerald-500 tracking-widest">PROT</p>
+            <p className="text-sm font-black text-emerald-600">{recipe.macros.protein}</p>
+          </div>
+          <div className="p-5 bg-orange-50 rounded-3xl text-center space-y-1">
+            <p className="text-[8px] font-black uppercase text-orange-500 tracking-widest">CARB</p>
+            <p className="text-sm font-black text-orange-600">{recipe.macros.carbs}</p>
+          </div>
+          <div className="p-5 bg-rose-50 rounded-3xl text-center space-y-1">
+            <p className="text-[8px] font-black uppercase text-rose-500 tracking-widest">FATS</p>
+            <p className="text-sm font-black text-rose-600">{recipe.macros.fats}</p>
+          </div>
         </div>
 
-        <p className="text-slate-600 text-lg font-medium leading-relaxed italic">"{recipe.description}"</p>
+        {/* Tabs */}
+        <div className="flex p-1.5 bg-slate-100 rounded-full">
+          <button 
+            onClick={() => setShowShoppingList(false)}
+            className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${!showShoppingList ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            {t.recipeResult}
+          </button>
+          <button 
+            onClick={() => setShowShoppingList(true)}
+            className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${showShoppingList ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            {t.shoppingList}
+          </button>
+        </div>
 
-        {/* Section: Ingredients */}
-        <section className="bg-emerald-50/50 p-6 rounded-[2rem] border-2 border-emerald-50">
-          <h3 className="text-xl font-black text-emerald-700 uppercase mb-4 tracking-tight flex items-center gap-2">
-            <span className="w-2 h-8 bg-emerald-500 rounded-full"></span> {t.ingredientsList}
-          </h3>
-          <ul className="space-y-3">
-            {recipe.ingredients.map((ing, i) => (
-              <li key={i} className="text-slate-800 font-bold flex gap-3 text-lg">
-                <span className="text-emerald-500">✓</span> {ing}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* Section: Preparation */}
-        <section className="pb-10">
-          <h3 className="text-xl font-black text-slate-900 uppercase mb-6 tracking-tight flex items-center gap-2">
-            <span className="w-2 h-8 bg-slate-900 rounded-full"></span> {t.instructionsList}
-          </h3>
-          <div className="space-y-6">
-            {recipe.instructions.map((step, i) => (
-              <div key={i} className="flex gap-4">
-                <span className="w-10 h-10 flex-shrink-0 bg-emerald-500 text-white rounded-2xl flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-100">{i+1}</span>
-                <p className="text-slate-800 leading-relaxed font-bold text-lg pt-1">{step}</p>
+        {/* Tab Content */}
+        <div className="min-h-[300px]">
+          {!showShoppingList ? (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+              <div className="space-y-6">
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                  <UtensilsCrossed className="w-6 h-6 text-emerald-500" />
+                  {t.ingredientsList}
+                </h3>
+                <div className="space-y-3">
+                  {recipe.ingredients.map((ing, i) => (
+                    <div key={i} className="flex items-center gap-4 p-5 bg-slate-100 rounded-3xl">
+                      <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full flex-shrink-0" />
+                      <p className="text-sm font-bold text-slate-900 uppercase tracking-tight">{ing}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-        </section>
+
+              <div className="space-y-6">
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                  {t.instructionsList}
+                </h3>
+                <div className="space-y-8">
+                  {recipe.instructions.map((step, i) => (
+                    <div key={i} className="space-y-3">
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest ml-1">{t.step} {i + 1}</p>
+                      <div className="p-6 bg-slate-100 rounded-[2rem]">
+                        <p className="text-sm font-bold text-slate-900 leading-relaxed uppercase tracking-tight">{step}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+              <div className="flex justify-between items-center mb-6 px-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {checkedIngredients.length} / {recipe.ingredients.length} {t.items}
+                </p>
+              </div>
+              {recipe.ingredients.map((ing, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => toggleIngredient(ing)}
+                  className={`w-full flex items-center gap-5 p-5 rounded-3xl transition-all text-left ${checkedIngredients.includes(ing) ? 'bg-slate-100 opacity-50' : 'bg-white border-2 border-slate-100 shadow-sm'}`}
+                >
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${checkedIngredients.includes(ing) ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}`}>
+                    {checkedIngredients.includes(ing) && <CheckCircle2 className="w-4 h-4 text-white" />}
+                  </div>
+                  <p className={`text-sm font-black uppercase tracking-tight ${checkedIngredients.includes(ing) ? 'line-through text-slate-500' : 'text-slate-900'}`}>{ing}</p>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </div>
       </div>
 
-      {/* Sticky Actions */}
-      <div className="fixed bottom-0 left-0 w-full p-6 bg-white/80 backdrop-blur-xl border-t border-slate-100 grid grid-cols-2 gap-4 z-20">
-        <button onClick={onBack} className="py-5 bg-slate-100 text-slate-700 font-black rounded-[1.5rem] uppercase active:scale-95 transition-all border-2 border-slate-200">{t.start}</button>
-        <button onClick={shareWA} className="py-5 bg-emerald-500 text-white font-black rounded-[1.5rem] shadow-xl active:scale-95 transition-all uppercase flex items-center justify-center gap-2">
-           WhatsApp
-        </button>
+      {/* Sticky Bottom Action */}
+      <div className="fixed bottom-0 left-0 right-0 p-8 bg-white/80 backdrop-blur-md z-50">
+        <div className="max-w-xl mx-auto">
+          <button 
+            onClick={onBack}
+            className="w-full py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-sm shadow-2xl active:scale-95 transition-all"
+          >
+            {t.generateNew}
+          </button>
+        </div>
       </div>
     </div>
   );

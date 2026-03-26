@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
 import { getFirebaseAdmin } from './_firebase-admin.js';
+import firebaseConfig from '../firebase-applet-config.json';
 
 const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
 
@@ -25,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const seed = Math.floor(Math.random() * 1000);
     const imagePrompt = `Professional food photography of ${title}. Description: ${description}. Ingredients: ${ingredients}. High quality, professional food styling, top view or restaurant presentation, detailed texture, 4k, appetizing, natural colors. No abstract art, no conceptual images, only real food and ingredients. Style #${seed}`;
     
-    console.log(`[Image API] prompt enviado: ${imagePrompt}`);
+    console.log(`[OpenAI Prompt] ${imagePrompt}`);
 
     const response = await openai.images.generate({
       model: "dall-e-3",
@@ -51,26 +52,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const arrayBuffer = await imageResponse.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Firebase Storage
+    // Use the bucket from Firebase Admin
     const { storage } = getFirebaseAdmin();
     const bucket = storage.bucket();
+
+    console.log(`[Storage Upload] usando bucket: ${bucket.name}`);
     const timestamp = Date.now();
     const fileName = `recipes/${recipeId}-${timestamp}.png`;
     const file = bucket.file(fileName);
 
-    await file.save(buffer, {
-      metadata: {
-        contentType: 'image/png',
-      },
-      public: true,
-    });
+    try {
+      await file.save(buffer, {
+        metadata: {
+          contentType: 'image/png',
+        },
+        resumable: false, // Disable resumable uploads to avoid potential auth/timeout issues in serverless
+      });
+    } catch (saveError: any) {
+      console.error(`[Storage Upload] erro ao salvar arquivo:`, saveError);
+      if (saveError.response) {
+        console.error(`[Storage Upload] dados da resposta:`, JSON.stringify(saveError.response.data));
+      }
+      throw saveError;
+    }
 
-    // Get public URL
-    // For Firebase Storage, the public URL format is:
-    // https://storage.googleapis.com/[BUCKET_NAME]/[FILE_NAME]
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    // Get public URL using getDownloadURL (more robust than ACL-based public:true)
+    const { getDownloadURL } = await import('firebase-admin/storage');
+    const publicUrl = await getDownloadURL(file);
 
-    console.log(`[Storage Upload] sucesso - Imagem salva em: ${fileName}`);
+    console.log(`[Storage Upload] ${fileName}`);
+    console.log(`[Image URL] ${publicUrl}`);
     console.log(`[Image Source] OpenAI`);
 
     return res.status(200).json({

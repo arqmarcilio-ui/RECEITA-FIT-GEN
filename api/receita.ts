@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const PROJECT_ID = "project-51458118-b23c-4d4b-8dc";
-const DATABASE_ID = "ai-studio-921ef103-2da8-48bf-9154-17a6c20afa9f";
+import firebaseConfig from '../firebase-applet-config.json';
+
+const PROJECT_ID = firebaseConfig.projectId;
+const DATABASE_ID = firebaseConfig.firestoreDatabaseId;
 
 function parseFirestore(fields: any) {
   const result: any = {};

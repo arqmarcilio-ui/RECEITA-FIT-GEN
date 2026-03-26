@@ -101,6 +101,7 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
         console.log(`[Image API] resposta recebida`);
         console.log(`[Image Source] OpenAI`);
         recipeData.imageUrl = imageData.imageUrl;
+        console.log(`[Recipe State] ${recipeData.imageUrl}`);
       } else {
         console.warn(`[Image API] Nenhuma imagem retornada pela API.`);
         recipeData.imageUrl = FOOD_PLACEHOLDER;

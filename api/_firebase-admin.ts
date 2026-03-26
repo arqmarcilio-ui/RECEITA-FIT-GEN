@@ -1,10 +1,6 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getStorage } from 'firebase-admin/storage';
-
-const firebaseConfig = {
-  projectId: "project-51458118-b23c-4d4b-8dc",
-  storageBucket: "project-51458118-b23c-4d4b-8dc.firebasestorage.app",
-};
+import firebaseConfig from '../firebase-applet-config.json';
 
 export function getFirebaseAdmin() {
   if (getApps().length === 0) {
@@ -16,9 +12,15 @@ export function getFirebaseAdmin() {
 
     try {
       const parsedServiceAccount = JSON.parse(serviceAccount);
+      // Use the bucket from the config file if available, otherwise fallback to project-id.firebasestorage.app
+      const bucketName = firebaseConfig.storageBucket || `${parsedServiceAccount.project_id}.firebasestorage.app`;
+      
+      console.log(`[Firebase Admin] Initializing with project: ${parsedServiceAccount.project_id}`);
+      console.log(`[Firebase Admin] Target bucket: ${bucketName}`);
+
       initializeApp({
         credential: cert(parsedServiceAccount),
-        storageBucket: firebaseConfig.storageBucket,
+        storageBucket: bucketName,
       });
     } catch (error) {
       console.error("Error parsing FIREBASE_SERVICE_ACCOUNT:", error);
