@@ -73,6 +73,8 @@ export const translations = {
     favoritesTitle: 'Minhas Salvas',
     historyTitle: 'Meu Histórico',
     items: 'itens',
+    backToStart: 'Voltar ao Início',
+    sendToWhatsApp: 'Mandar por WhatsApp',
     dietaryFilters: {
       'Sem Restrição': 'Sem Restrição',
       'Vegano': 'Vegano',
@@ -179,6 +181,8 @@ export const translations = {
     favoritesTitle: 'My Saved',
     historyTitle: 'My History',
     items: 'items',
+    backToStart: 'Back to Start',
+    sendToWhatsApp: 'Send to WhatsApp',
     dietaryFilters: {
       'Sem Restrição': 'No Restriction',
       'Vegano': 'Vegan',

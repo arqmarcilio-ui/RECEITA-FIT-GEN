@@ -68,6 +68,12 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
     }
   };
 
+  const handleWhatsAppShare = () => {
+    const text = `*${recipe.title}*\n\n${recipe.description}\n\n*Ingredientes:*\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\n*Modo de Preparo:*\n${recipe.instructions.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\nGerado por Receita Fit Gen`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
   const toggleIngredient = (ing: string) => {
     setCheckedIngredients(prev => 
       prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]
@@ -231,12 +237,19 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
 
       {/* Sticky Bottom Action */}
       <div className="fixed bottom-0 left-0 right-0 p-8 bg-white/80 backdrop-blur-md z-50">
-        <div className="max-w-xl mx-auto">
+        <div className="max-w-xl mx-auto flex gap-4">
           <button 
             onClick={onBack}
-            className="w-full py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-sm shadow-2xl active:scale-95 transition-all"
+            className="flex-1 py-6 bg-slate-100 text-slate-900 rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-sm active:scale-95 transition-all"
           >
-            {t.generateNew}
+            {t.backToStart}
+          </button>
+          <button 
+            onClick={handleWhatsAppShare}
+            className="flex-1 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            {t.sendToWhatsApp}
           </button>
         </div>
       </div>

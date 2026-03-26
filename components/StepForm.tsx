@@ -71,19 +71,19 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
   const StepHeader = () => {
     const progress = Math.round((step / totalSteps) * 100);
     return (
-      <div className="px-8 pt-12 pb-6 space-y-2">
+      <div className="px-8 pt-8 pb-4 space-y-1">
         <div className="flex justify-between items-end">
-          <div className="space-y-0.5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <div className="space-y-0">
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
               {t.step} {step} {t.of} {totalSteps}
             </p>
-            <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight leading-none">{t.customize}</h2>
+            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none">{t.customize}</h2>
           </div>
-          <div className="text-emerald-500 font-black text-xl">
+          <div className="text-emerald-500 font-black text-lg">
             {progress}%
           </div>
         </div>
-        <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
           <motion.div 
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
@@ -98,7 +98,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
     <div className="flex flex-col h-screen bg-white overflow-hidden">
       <StepHeader />
 
-      <div className="flex-1 overflow-y-auto px-8 py-4 space-y-8 pb-32">
+      <div className="flex-1 overflow-y-auto px-8 py-2 space-y-6 pb-24">
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div 
@@ -109,15 +109,15 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               className="space-y-8"
             >
               <div className="space-y-2">
-                <h3 className="text-3xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.profileQuestion}</h3>
-                <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">{t.profileSub}</p>
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.profileQuestion}</h3>
+                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">{t.profileSub}</p>
               </div>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {otherFilters.map(f => (
                   <button 
                     key={f} 
                     onClick={() => toggleDietary(f)}
-                    className={`p-5 border-2 rounded-3xl transition-all text-sm font-black uppercase tracking-widest text-left px-8 ${
+                    className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
                       formData.dietaryFilters.includes(f) 
                         ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
                         : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -128,7 +128,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                 ))}
                 <button 
                   onClick={() => toggleDietary(DietaryFilter.SEM_RESTRICAO)}
-                  className={`p-5 border-2 rounded-3xl transition-all text-sm font-black uppercase tracking-widest text-left px-8 ${
+                  className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
                     formData.dietaryFilters.includes(DietaryFilter.SEM_RESTRICAO) 
                       ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
                       : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -149,15 +149,15 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               className="space-y-8"
             >
               <div className="space-y-2">
-                <h3 className="text-3xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.mealMoment}</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.mealMoment}</h3>
               </div>
               <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   {Object.values(MealType).map(m => (
                     <button 
                       key={m} 
                       onClick={() => selectMealType(m)}
-                      className={`p-5 border-2 rounded-3xl transition-all text-sm font-black uppercase tracking-widest text-left px-8 ${
+                      className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
                         formData.mealType === m 
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -168,11 +168,11 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   ))}
                 </div>
 
-                <div className="space-y-3 pt-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.specificDish}</p>
+                <div className="space-y-2 pt-2">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.specificDish}</p>
                   <input 
                     placeholder={t.dishPlaceholder}
-                    className="w-full p-5 bg-white border-2 border-slate-300 rounded-3xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
+                    className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
                     value={formData.dishType}
                     onChange={e => setFormData({...formData, dishType: e.target.value})}
                   />
@@ -190,18 +190,18 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               className="space-y-8"
             >
               <div className="space-y-2">
-                <h3 className="text-3xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.portions}</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.portions}</h3>
               </div>
               
-              <div className="space-y-8">
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.people}</p>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.people}</p>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((num) => (
                       <button
                         key={num}
                         onClick={() => setFormData(p => ({...p, peopleCount: num}))}
-                        className={`flex-1 py-4 border-2 rounded-2xl transition-all font-black text-sm ${
+                        className={`flex-1 py-5 border-2 rounded-xl transition-all font-black text-xs ${
                           formData.peopleCount === num
                             ? 'bg-emerald-50/50 border-emerald-500 text-emerald-600'
                             : 'bg-white border-slate-300 text-slate-800 hover:border-emerald-500 hover:text-emerald-500'
@@ -213,14 +213,14 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.calories}</p>
-                  <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.calories}</h3>
+                  <div className="grid grid-cols-2 gap-2">
                     {Object.values(CalorieLevel).map(c => (
                       <button 
                         key={c} 
                         onClick={() => setFormData({...formData, calorieLevel: c})}
-                        className={`p-5 border-2 rounded-3xl transition-all text-sm font-black uppercase tracking-widest text-left px-8 ${
+                        className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
                           formData.calorieLevel === c 
                             ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
                             : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -243,14 +243,14 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               exit={{ opacity: 0, x: -20 }}
               className="space-y-8"
             >
-              <div className="space-y-6">
-                <h3 className="text-3xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.flavorOption}</h3>
-                <div className="grid grid-cols-1 gap-3">
+              <div className="space-y-4">
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.flavorOption}</h3>
+                <div className="grid grid-cols-1 gap-2">
                   {Object.values(Flavor).map(f => (
                     <button 
                       key={f} 
                       onClick={() => setFormData({...formData, flavor: f})}
-                      className={`p-6 border-2 rounded-3xl transition-all text-lg font-black uppercase tracking-tight text-left px-8 ${
+                      className={`p-4 border-2 rounded-2xl transition-all text-sm font-black uppercase tracking-tight text-left px-6 ${
                         formData.flavor === f 
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -262,21 +262,21 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <h3 className="text-3xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.preparation}</h3>
-                <div className="grid grid-cols-1 gap-3">
+              <div className="space-y-4">
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.preparation}</h3>
+                <div className="grid grid-cols-1 gap-2">
                   {Object.values(SkillLevel).map(s => (
                     <button 
                       key={s} 
                       onClick={() => setFormData({...formData, skillLevel: s})}
-                      className={`p-6 border-2 rounded-3xl transition-all text-lg font-black uppercase tracking-tight text-left px-8 flex justify-between items-center ${
+                      className={`p-4 border-2 rounded-2xl transition-all text-sm font-black uppercase tracking-tight text-left px-6 flex justify-between items-center ${
                         formData.skillLevel === s 
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
                       }`}
                     >
                       <span>{(t.skillLevels as any)[s]}</span>
-                      {formData.skillLevel === s && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />}
+                      {formData.skillLevel === s && <div className="w-2 h-2 bg-emerald-500 rounded-full" />}
                     </button>
                   ))}
                 </div>
@@ -292,25 +292,25 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               exit={{ opacity: 0, x: -20 }}
               className="space-y-8"
             >
-              <div className="space-y-6">
-                <h3 className="text-3xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.ingredients}</h3>
-                <div className="space-y-8">
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{t.availableIngredients}</p>
+              <div className="space-y-4">
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.ingredients}</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">{t.availableIngredients}</p>
                     <textarea 
-                      rows={5}
+                      rows={4}
                       placeholder={t.ingredientsPlaceholder}
-                      className="w-full p-6 bg-white border-2 border-slate-300 rounded-[2.5rem] text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all resize-none"
+                      className="w-full p-5 bg-white border-2 border-slate-300 rounded-[2rem] text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all resize-none"
                       value={formData.ingredients}
                       onChange={e => setFormData({...formData, ingredients: e.target.value})}
                     />
                   </div>
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{t.avoidIngredients}</p>
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">{t.avoidIngredients}</p>
                     <textarea 
-                      rows={4}
+                      rows={3}
                       placeholder={t.avoidPlaceholder}
-                      className="w-full p-6 bg-white border-2 border-slate-300 rounded-[2.5rem] text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all resize-none"
+                      className="w-full p-5 bg-white border-2 border-slate-300 rounded-[2rem] text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all resize-none"
                       value={formData.dispensableIngredients}
                       onChange={e => setFormData({...formData, dispensableIngredients: e.target.value})}
                     />
