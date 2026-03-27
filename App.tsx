@@ -9,8 +9,11 @@ import ResultScreen from './components/ResultScreen';
 import FavoritesList from './components/FavoritesList';
 import HistoryList from './components/HistoryList';
 import LoadingScreen from './components/LoadingScreen';
+import LoginScreen from './components/LoginScreen';
 import { Language, translations } from './translations';
 import { LogOut, ShieldAlert, ChefHat, X } from 'lucide-react';
+import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot } from './firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist'>('splash');
@@ -29,6 +32,89 @@ const App: React.FC = () => {
   });
   const [result, setResult] = useState<RecipeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Auth state
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) {
+        setIsAuthorized(false);
+        setAuthLoading(false);
+        return;
+      }
+
+      const email = currentUser.email;
+      console.log(`[Auth] E-mail autenticado: ${email}`);
+
+      if (email === 'arqmarcilio@gmail.com') {
+        console.log(`[Auth] Acesso autorizado (Admin)`);
+        setIsAuthorized(true);
+        setAuthLoading(false);
+        return;
+      }
+
+      if (!email) {
+        handleUnauthorized();
+        return;
+      }
+
+      console.log(`[Auth] Caminho consultado: allowed_users/${email}`);
+      const docRef = doc(db, 'allowed_users', email);
+      
+      const unsubscribeDoc = onSnapshot(docRef, (docSnap) => {
+        const exists = docSnap.exists();
+        console.log(`[Auth] Documento existe? ${exists}`);
+        
+        if (exists) {
+          const data = docSnap.data();
+          const isActive = data?.active === true;
+          console.log(`[Auth] Valor de active: ${isActive}`);
+          
+          if (isActive) {
+            console.log(`[Auth] Acesso autorizado`);
+            setIsAuthorized(true);
+            setAuthLoading(false);
+          } else {
+            console.log(`[Auth] Acesso negado (active=false)`);
+            handleUnauthorized();
+          }
+        } else {
+          console.log(`[Auth] Acesso negado (documento não existe)`);
+          handleUnauthorized();
+        }
+      }, (error) => {
+        console.error("[Auth] Erro ao consultar allowed_users:", error);
+        handleUnauthorized();
+      });
+
+      return () => unsubscribeDoc();
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  const handleUnauthorized = async () => {
+    setIsAuthorized(false);
+    setAuthLoading(false);
+    setAuthError(t.unauthorizedEmail || 'Acesso não autorizado para este e-mail.');
+    await signOut(auth);
+  };
+
+  const handleLogin = async () => {
+    setAuthError(null);
+    setAuthLoading(true);
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Login error:", error);
+      setAuthLoading(false);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -77,8 +163,27 @@ const App: React.FC = () => {
     }
   };
 
+  if (authLoading) {
+    return <LoginScreen language={language} onLogin={handleLogin} error={null} isLoading={true} />;
+  }
+
+  if (!user || !isAuthorized) {
+    return <LoginScreen language={language} onLogin={handleLogin} error={authError} isLoading={false} />;
+  }
+
   return (
     <div className="max-w-xl mx-auto min-h-screen bg-white relative font-sans selection:bg-emerald-100">
+      {/* Header with Logout */}
+      <div className="absolute top-6 right-6 z-50">
+        <button 
+          onClick={() => signOut(auth)}
+          className="p-3 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-full transition-all"
+          title={t.signOut}
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
+      </div>
+
       {view === 'splash' && (
         <SplashScreen 
           language={language} 
