@@ -17,6 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   console.log(`[Image API] chamando geração para: ${title}`);
+  const startTime = Date.now();
 
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -37,6 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       response_format: "url",
     });
 
+    const openaiTime = Date.now();
+    console.log(`[Image API] OpenAI levou ${openaiTime - startTime}ms`);
+
     const imageUrl = response.data[0].url;
     if (!imageUrl) {
       throw new Error("OpenAI returned no image URL");
@@ -52,8 +56,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const arrayBuffer = await imageResponse.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    const downloadTime = Date.now();
+    console.log(`[Image API] Download levou ${downloadTime - openaiTime}ms`);
+
     // Use the bucket from Firebase Admin
     const { storage } = getFirebaseAdmin();
+    // Use the default bucket configured in initializeApp
     const bucket = storage.bucket();
 
     console.log(`[Storage Upload] usando bucket: ${bucket.name}`);
@@ -66,19 +74,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         metadata: {
           contentType: 'image/png',
         },
-        resumable: false, // Disable resumable uploads to avoid potential auth/timeout issues in serverless
+        resumable: false,
       });
     } catch (saveError: any) {
-      console.error(`[Storage Upload] erro ao salvar arquivo:`, saveError);
+      console.error(`[Storage Upload] erro ao salvar arquivo no bucket ${bucket.name}:`, saveError);
+      if (saveError.code) {
+        console.error(`[Storage Upload] código do erro:`, saveError.code);
+      }
       if (saveError.response) {
         console.error(`[Storage Upload] dados da resposta:`, JSON.stringify(saveError.response.data));
       }
       throw saveError;
     }
 
+    const uploadTime = Date.now();
+    console.log(`[Image API] Upload levou ${uploadTime - downloadTime}ms`);
+
     // Get public URL using getDownloadURL (more robust than ACL-based public:true)
     const { getDownloadURL } = await import('firebase-admin/storage');
     const publicUrl = await getDownloadURL(file);
+
+    const finalTime = Date.now();
+    console.log(`[Image API] Total: ${finalTime - startTime}ms`);
 
     console.log(`[Storage Upload] ${fileName}`);
     console.log(`[Image URL] ${publicUrl}`);

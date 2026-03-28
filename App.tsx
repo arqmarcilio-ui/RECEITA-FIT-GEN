@@ -89,6 +89,17 @@ const App: React.FC = () => {
         }
       }, (error) => {
         console.error("[Auth] Erro ao consultar allowed_users:", error);
+        const errInfo = {
+          error: error instanceof Error ? error.message : String(error),
+          authInfo: {
+            userId: auth.currentUser?.uid,
+            email: auth.currentUser?.email,
+            emailVerified: auth.currentUser?.emailVerified,
+          },
+          operationType: 'get',
+          path: `allowed_users/${email}`
+        };
+        console.error('Firestore Error: ', JSON.stringify(errInfo));
         handleUnauthorized();
       });
 
@@ -144,20 +155,25 @@ const App: React.FC = () => {
     setView('loading');
     setError(null);
     try {
+      console.log(`[App] Chamando generateRecipe...`);
       const recipe = await generateRecipe(data);
+      console.log(`[App] Receita recebida com sucesso:`, recipe.title);
       recipe.id = recipe.tempId; // Use tempId as ID for local storage
       
       setResult(recipe);
+      console.log(`[App] Estado 'result' atualizado. Mudando para view 'result'.`);
       setView('result');
       
       // Save to history
+      console.log(`[App] Salvando no histórico...`);
       const historyStr = localStorage.getItem('fit_gen_hist');
       let history = historyStr ? JSON.parse(historyStr) : [];
       const newHistory = [recipe, ...history].slice(0, 20);
       safeSaveToLocalStorage('fit_gen_hist', newHistory, 20);
+      console.log(`[App] Histórico salvo.`);
       
     } catch (e: any) {
-      console.error(e);
+      console.error(`[App] Erro na geração:`, e);
       setError(e.message || t.errorGeneric);
       setView('form');
     }

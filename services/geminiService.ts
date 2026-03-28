@@ -68,6 +68,7 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
 
     if (!response.text) throw new Error("Resposta vazia do modelo");
     
+    console.log(`[Gemini] Texto bruto da resposta:`, response.text);
     const recipeData = JSON.parse(response.text) as RecipeResult;
     recipeData.tempId = Math.random().toString(36).substring(7);
     console.log(`[Gemini] Receita gerada: "${recipeData.title}" (tempId: ${recipeData.tempId})`);
@@ -78,6 +79,9 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
     try {
       console.log(`[Image API] chamando geração para: ${recipeData.title}`);
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 seconds timeout
+
       const imageResponse = await fetch('/api/generate-recipe-image', {
         method: 'POST',
         headers: {
@@ -89,7 +93,10 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
           ingredients: recipeData.ingredients.join(', '),
           recipeId: recipeData.tempId,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!imageResponse.ok) {
         throw new Error(`Erro HTTP: ${imageResponse.status}`);
@@ -98,16 +105,18 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
       const imageData = await imageResponse.json();
       
       if (imageData.imageUrl) {
-        console.log(`[Image API] resposta recebida`);
-        console.log(`[Image Source] OpenAI`);
+        console.log(`[Image API] resposta recebida: ${imageData.imageUrl}`);
         recipeData.imageUrl = imageData.imageUrl;
-        console.log(`[Recipe State] ${recipeData.imageUrl}`);
       } else {
         console.warn(`[Image API] Nenhuma imagem retornada pela API.`);
         recipeData.imageUrl = FOOD_PLACEHOLDER;
       }
-    } catch (e) {
-      console.error(`[Image API] erro na geração:`, e);
+    } catch (e: any) {
+      if (e.name === 'AbortError') {
+        console.error(`[Image API] timeout na geração da imagem.`);
+      } else {
+        console.error(`[Image API] erro na geração:`, e);
+      }
       recipeData.imageUrl = FOOD_PLACEHOLDER;
     }
 
