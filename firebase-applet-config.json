@@ -1,10 +1,9 @@
 {
+  "apiKey": "AIzaSyB3ahZb8ww9FQs-ZGKm8ooXy6l5gjGeiDE",
+  "authDomain": "receita-fit-gen-2.firebaseapp.com",
   "projectId": "receita-fit-gen-2",
-  "appId": "1:941794526294:web:633f7b0815839d023be7f7",
-  "chave de API": "AIzaSyB3ahZb8ww9FQs-ZGKm8ooXy6l5gjGeiDE",
-  "domínio de autenticação": "receita-fit-gen-2.firebaseapp.com",
-  "firestoreDatabaseId": "(default)",
-  "balde de armazenamento": "receita-fit-gen-2.firebasestorage.app",
+  "storageBucket": "receita-fit-gen-2.firebasestorage.app",
   "messagingSenderId": "941794526294",
-  "ID da medição": "G-QSBXY4K7PH"
+  "appId": "1:941794526294:web:633f7b0815839d023be7f7",
+  "measurementId": "G-QSBXY4K7PH"
 }
