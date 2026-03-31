@@ -1,10 +1,10 @@
 {
-  "projectId": "project-51458118-b23c-4d4b-8dc",
-  "appId": "1:247123663307:web:1ee789bf3849b0e78ebe4e",
-  "apiKey": "AIzaSyBW-eErBmielFRLUKi08Id78D_oGKF5_WE",
-  "authDomain": "project-51458118-b23c-4d4b-8dc.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-921ef103-2da8-48bf-9154-17a6c20afa9f",
-  "storageBucket": "project-51458118-b23c-4d4b-8dc.appspot.com",
-  "messagingSenderId": "247123663307",
-  "measurementId": ""
+  "projectId": "receita-fit-gen-2",
+  "appId": "1:941794526294:web:633f7b0815839d023be7f7",
+  "chave de API": "AIzaSyB3ahZb8ww9FQs-ZGKm8ooXy6l5gjGeiDE",
+  "domínio de autenticação": "receita-fit-gen-2.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "balde de armazenamento": "receita-fit-gen-2.firebasestorage.app",
+  "messagingSenderId": "941794526294",
+  "ID da medição": "G-QSBXY4K7PH"
 }
