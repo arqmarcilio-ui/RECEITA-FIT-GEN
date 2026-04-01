@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
-import { getFirebaseAdmin } from './firebase-admin.js';
+import { getFirebaseAdmin } from './_firebase-admin.js';
+import firebaseConfig from '../firebase-applet-config.json';
 
 const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
 
