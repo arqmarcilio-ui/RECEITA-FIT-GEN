@@ -33,5 +33,18 @@ service cloud.firestore {
                           (request.resource == null || request.resource.data.userId == request.auth.uid) &&
                           (resource == null || resource.data.userId == request.auth.uid);
     }
+
+    // Public Recipes collection
+    match /public_recipes/{recipeId} {
+      // Allow public read for everyone
+      allow read: if true;
+      
+      // Only authenticated users can create
+      allow create: if isAuthenticated();
+      
+      // Only admins or authors can update/delete
+      allow update, delete: if isAuthenticated() && 
+                             (request.auth.token.email == "arqmarcilio@gmail.com" || (resource != null && resource.data.authorId == request.auth.uid));
+    }
   }
 }

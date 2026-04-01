@@ -103,7 +103,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-8 py-6 flex items-center justify-between">
         <button onClick={onBack} className="flex items-center gap-2 p-3 bg-slate-100 text-slate-900 rounded-full hover:bg-slate-200 transition-all group">
           <ArrowLeft className="w-5 h-5" />
-          <span className="text-[10px] font-black uppercase tracking-widest pr-1">Sair</span>
+          <span className="text-[10px] font-black uppercase tracking-widest pr-1">{t.signOut}</span>
         </button>
         <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">{t.recipeResult}</h2>
         <div className="flex gap-2">
@@ -131,7 +131,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
             />
           </div>
           <div className="space-y-3">
-            <h1 className="text-5xl font-black text-slate-900 uppercase leading-none tracking-tighter">
+            <h1 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tighter">
               {recipe.title}
             </h1>
             <p className="text-slate-400 font-bold text-sm uppercase tracking-tight leading-relaxed">
@@ -247,10 +247,9 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
           </button>
           <button 
             onClick={handleWhatsAppShare}
-            className="flex-1 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl active:scale-95 transition-all flex items-center justify-center"
           >
-            <Share2 className="w-4 h-4" />
-            {t.sendToWhatsApp}
+            Whatsapp
           </button>
         </div>
       </div>

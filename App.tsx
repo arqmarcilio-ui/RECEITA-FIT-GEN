@@ -8,15 +8,16 @@ import StepForm from './components/StepForm';
 import ResultScreen from './components/ResultScreen';
 import FavoritesList from './components/FavoritesList';
 import HistoryList from './components/HistoryList';
+import PublicHistoryList from './components/PublicHistoryList';
 import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import { Language, translations } from './translations';
 import { LogOut, ShieldAlert, ChefHat, X } from 'lucide-react';
-import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot } from './firebase';
+import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist'>('splash');
+  const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist'>('splash');
   const [language, setLanguage] = useState<Language>('pt');
   const t = translations[language];
   const [prefs, setPrefs] = useState<UserPreferences>({
@@ -171,6 +172,19 @@ const App: React.FC = () => {
       const newHistory = [recipe, ...history].slice(0, 20);
       safeSaveToLocalStorage('fit_gen_hist', newHistory, 20);
       console.log(`[App] Histórico salvo.`);
+
+      // Save to public history in Firestore
+      try {
+        await addDoc(collection(db, 'public_recipes'), {
+          ...recipe,
+          createdAt: serverTimestamp(),
+          authorId: user?.uid,
+          authorEmail: user?.email
+        });
+        console.log(`[App] Receita salva no histórico público.`);
+      } catch (err) {
+        console.error("[App] Erro ao salvar no histórico público:", err);
+      }
       
     } catch (e: any) {
       console.error(`[App] Erro na geração:`, e);
@@ -208,6 +222,7 @@ const App: React.FC = () => {
           onStart={() => setView('form')} 
           onOpenFavorites={() => setView('favs')} 
           onOpenHistory={() => setView('hist')} 
+          onOpenPublicHistory={() => setView('publicHist')}
         />
       )}
       
@@ -251,6 +266,14 @@ const App: React.FC = () => {
       
       {view === 'hist' && (
         <HistoryList 
+          language={language} 
+          onSelect={(r) => { setResult(r); setView('result'); }} 
+          onBack={() => setView('splash')} 
+        />
+      )}
+      
+      {view === 'publicHist' && (
+        <PublicHistoryList 
           language={language} 
           onSelect={(r) => { setResult(r); setView('result'); }} 
           onBack={() => setView('splash')} 

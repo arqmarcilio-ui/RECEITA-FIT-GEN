@@ -2,34 +2,45 @@
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
 import { Language, translations } from '../translations';
-import { ArrowLeft, Clock, Flame, History, Search } from 'lucide-react';
+import { ArrowLeft, Clock, Flame, Sparkles, Search } from 'lucide-react';
 import { motion } from 'motion/react';
+import { db, collection, query, orderBy, limit, onSnapshot } from '../firebase';
 
-interface HistoryListProps {
+interface PublicHistoryListProps {
   onSelect: (r: RecipeResult) => void;
   onBack: () => void;
   language: Language;
 }
 
-const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack, language }) => {
+const PublicHistoryList: React.FC<PublicHistoryListProps> = ({ onSelect, onBack, language }) => {
   const t = translations[language];
-  const [hist, setHist] = useState<RecipeResult[]>([]);
+  const [recipes, setRecipes] = useState<RecipeResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const fetchHistory = () => {
-      const histStr = localStorage.getItem('fit_gen_hist');
-      if (histStr) {
-        setHist(JSON.parse(histStr));
-      }
-      setLoading(false);
-    };
+    const q = query(
+      collection(db, 'public_recipes'),
+      orderBy('createdAt', 'desc'),
+      limit(50)
+    );
 
-    fetchHistory();
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedRecipes = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      })) as RecipeResult[];
+      setRecipes(fetchedRecipes);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching public recipes:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const filteredHist = hist.filter(r => 
+  const filteredRecipes = recipes.filter(r => 
     r.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -45,7 +56,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack, language })
           <span className="text-[10px] font-black uppercase tracking-widest pr-1">{t.signOut}</span>
         </button>
         <h2 className="text-5xl font-black text-slate-900 uppercase leading-none tracking-tighter">
-          {t.historyTitle}
+          {t.publicHistory}
         </h2>
       </div>
 
@@ -69,16 +80,16 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack, language })
           <div className="flex flex-col items-center justify-center h-64 text-slate-400 font-black uppercase tracking-widest text-xs">
             <p>{t.loading}</p>
           </div>
-        ) : filteredHist.length === 0 ? (
+        ) : filteredRecipes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400 font-black uppercase tracking-widest text-xs space-y-6">
             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center">
-              <History className="w-8 h-8 opacity-20" />
+              <Sparkles className="w-8 h-8 opacity-20" />
             </div>
-            <p>{searchTerm ? t.noResults : t.noHistory}</p>
+            <p>{searchTerm ? t.noResults : t.noPublicHistory}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {filteredHist.map((r, i) => (
+            {filteredRecipes.map((r, i) => (
               <motion.div 
                 key={i} 
                 initial={{ opacity: 0, y: 10 }}
@@ -131,4 +142,4 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack, language })
   );
 };
 
-export default HistoryList;
+export default PublicHistoryList;
