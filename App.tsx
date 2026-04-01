@@ -193,10 +193,11 @@ const App: React.FC = () => {
       <div className="absolute top-6 right-6 z-50">
         <button 
           onClick={() => signOut(auth)}
-          className="p-3 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-full transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-full transition-all group"
           title={t.signOut}
         >
-          <LogOut className="w-5 h-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest">{t.signOut}</span>
+          <LogOut className="w-4 h-4" />
         </button>
       </div>
 

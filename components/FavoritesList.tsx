@@ -34,9 +34,10 @@ const FavoritesList: React.FC<FavoritesListProps> = ({ onSelect, onBack, languag
       <div className="px-8 pt-16 pb-8 space-y-6">
         <button 
           onClick={onBack}
-          className="p-3 bg-slate-50 text-slate-900 rounded-full hover:bg-slate-100 transition-all w-fit"
+          className="flex items-center gap-2 p-3 bg-slate-50 text-slate-900 rounded-full hover:bg-slate-100 transition-all w-fit group"
         >
           <ArrowLeft className="w-5 h-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest pr-1">Sair</span>
         </button>
         <h2 className="text-5xl font-black text-slate-900 uppercase leading-none tracking-tighter">
           {t.favoritesTitle}
