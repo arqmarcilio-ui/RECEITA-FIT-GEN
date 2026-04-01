@@ -3,8 +3,24 @@ import OpenAI from 'openai';
 import { getFirebaseAdmin } from './_firebase-admin.js';
 import firebaseConfig from '../firebase-applet-config.json';
 
-const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
+function getFallbackImage(title: string) {
+  return `https://source.unsplash.com/800x600/?food,${encodeURIComponent(title)}`;
+async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 2000): Promise<T> {
+  let lastError: unknown;
 
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+
+  throw lastError;
+}
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -29,22 +45,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     console.log(`[OpenAI Prompt] ${imagePrompt}`);
 
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: imagePrompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-      response_format: "url",
-    });
+    const response = await withRetry(() =>
+  openai.images.generate({
+    model: "gpt-image-1",
+    prompt: imagePrompt,
+    size: "1024x1024"
+  })
+);
 
     const openaiTime = Date.now();
     console.log(`[Image API] OpenAI levou ${openaiTime - startTime}ms`);
 
-    const imageUrl = response.data[0].url;
-    if (!imageUrl) {
-      throw new Error("OpenAI returned no image URL");
-    }
+    let imageUrl;
+
+if (response.data[0].url) {
+  imageUrl = response.data[0].url;
+} else if (response.data[0].b64_json) {
+  imageUrl = `data:image/png;base64,${response.data[0].b64_json}`;
+} else {
+  throw new Error("OpenAI returned no image data");
+}
 
     console.log(`[Image API] sucesso - Imagem gerada pela OpenAI`);
 
