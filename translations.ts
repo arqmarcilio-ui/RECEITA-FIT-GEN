@@ -89,7 +89,8 @@ export const translations = {
       'Almoço': 'Almoço',
       'Jantar': 'Jantar',
       'Lanche': 'Lanche',
-      'Sobremesa': 'Sobremesa'
+      'Sobremesa': 'Sobremesa',
+      'Prato Específico': 'Prato Específico'
     },
     calorieLevels: {
       'Até 200 kcal': 'Até 200 kcal',
@@ -197,7 +198,8 @@ export const translations = {
       'Almoço': 'Lunch',
       'Jantar': 'Dinner',
       'Lanche': 'Snack',
-      'Sobremesa': 'Dessert'
+      'Sobremesa': 'Dessert',
+      'Prato Específico': 'Specific Dish'
     },
     calorieLevels: {
       'Até 200 kcal': 'Up to 200 kcal',

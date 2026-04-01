@@ -82,7 +82,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
           {t.poweredBy}
         </div>
         <div className="px-4 py-1.5 bg-slate-50 text-slate-400 text-[8px] font-black tracking-widest uppercase rounded-full">
-          {t.version} 2.0
+          {t.version} 2.1
         </div>
       </div>
     </div>

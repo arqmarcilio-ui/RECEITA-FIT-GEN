@@ -14,7 +14,8 @@ export enum MealType {
   ALMOCO = 'Almoço',
   JANTAR = 'Jantar',
   LANCHE = 'Lanche',
-  SOBREMESA = 'Sobremesa'
+  SOBREMESA = 'Sobremesa',
+  PRATO_ESPECIFICO = 'Prato Específico'
 }
 
 export enum CalorieLevel {

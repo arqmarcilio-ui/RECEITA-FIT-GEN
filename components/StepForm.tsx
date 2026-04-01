@@ -53,7 +53,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
 
   const selectMealType = (m: MealType) => {
     setFormData({ ...formData, mealType: m, dishType: '' });
-    setShowDishInput(false);
+    setShowDishInput(m === MealType.PRATO_ESPECIFICO);
   };
 
   const toggleSpecificDish = () => {
@@ -168,15 +168,17 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   ))}
                 </div>
 
-                <div className="space-y-2 pt-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.specificDish}</p>
-                  <input 
-                    placeholder={t.dishPlaceholder}
-                    className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
-                    value={formData.dishType}
-                    onChange={e => setFormData({...formData, dishType: e.target.value})}
-                  />
-                </div>
+                {showDishInput && (
+                  <div className="space-y-2 pt-2">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.specificDish}</p>
+                    <input 
+                      placeholder={t.dishPlaceholder}
+                      className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
+                      value={formData.dishType}
+                      onChange={e => setFormData({...formData, dishType: e.target.value})}
+                    />
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
