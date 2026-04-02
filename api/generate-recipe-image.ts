@@ -5,6 +5,8 @@ import firebaseConfig from '../firebase-applet-config.json';
 
 function getFallbackImage(title: string) {
   return `https://source.unsplash.com/800x600/?food,${encodeURIComponent(title)}`;
+}
+
 async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 2000): Promise<T> {
   let lastError: unknown;
 
@@ -21,6 +23,7 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 2000): 
 
   throw lastError;
 }
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -46,42 +49,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log(`[OpenAI Prompt] ${imagePrompt}`);
 
     const response = await withRetry(() =>
-  openai.images.generate({
-    model: "gpt-image-1",
-    prompt: imagePrompt,
-    size: "1024x1024"
-  })
-);
+      openai.images.generate({
+        model: "gpt-image-1",
+        prompt: imagePrompt,
+        size: "1024x1024"
+      })
+    );
 
     const openaiTime = Date.now();
     console.log(`[Image API] OpenAI levou ${openaiTime - startTime}ms`);
 
-    let imageUrl;
+    let imageUrl: string | undefined;
+    let buffer: Buffer;
 
-if (response.data[0].url) {
-  imageUrl = response.data[0].url;
-} else if (response.data[0].b64_json) {
-  imageUrl = `data:image/png;base64,${response.data[0].b64_json}`;
-} else {
-  throw new Error("OpenAI returned no image data");
-}
+    if (response.data[0].url) {
+      imageUrl = response.data[0].url;
+
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to download image from OpenAI: ${imageResponse.statusText}`);
+      }
+
+      const arrayBuffer = await imageResponse.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+
+    } else if (response.data[0].b64_json) {
+      imageUrl = `data:image/png;base64,${response.data[0].b64_json}`;
+      buffer = Buffer.from(response.data[0].b64_json, 'base64');
+
+    } else {
+      throw new Error("OpenAI returned no image data");
+    }
 
     console.log(`[Image API] sucesso - Imagem gerada pela OpenAI`);
-
-    // Download image
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error(`Failed to download image from OpenAI: ${imageResponse.statusText}`);
-    }
-    const arrayBuffer = await imageResponse.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
 
     const downloadTime = Date.now();
     console.log(`[Image API] Download levou ${downloadTime - openaiTime}ms`);
 
-    // Use the bucket from Firebase Admin
     const { storage } = getFirebaseAdmin();
-    // Use the default bucket configured in initializeApp
     const bucket = storage.bucket();
 
     console.log(`[Storage Upload] usando bucket: ${bucket.name}`);
@@ -110,7 +115,6 @@ if (response.data[0].url) {
     const uploadTime = Date.now();
     console.log(`[Image API] Upload levou ${uploadTime - downloadTime}ms`);
 
-    // Get public URL using getDownloadURL (more robust than ACL-based public:true)
     const { getDownloadURL } = await import('firebase-admin/storage');
     const publicUrl = await getDownloadURL(file);
 
@@ -133,7 +137,7 @@ if (response.data[0].url) {
     
     return res.status(200).json({
       success: false,
-      imageUrl: FOOD_PLACEHOLDER,
+      imageUrl: getFallbackImage(title),
       error: error.message || 'Unknown error',
     });
   }
