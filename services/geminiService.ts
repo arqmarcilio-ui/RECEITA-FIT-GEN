@@ -74,7 +74,8 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
     console.log(`[Gemini] Receita gerada: "${recipeData.title}" (tempId: ${recipeData.tempId})`);
 
     // Gerar imagem do prato via OpenAI (backend)
-    const FOOD_PLACEHOLDER = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop";
+    const getFallbackImage = (title: string) =>
+  `https://picsum.photos/seed/${encodeURIComponent(title)}-${Date.now()}/1000/600`;
     
     try {
       console.log(`[Image API] chamando geração para: ${recipeData.title}`);
@@ -104,20 +105,20 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
 
       const imageData = await imageResponse.json();
       
-      if (imageData.imageUrl) {
-        console.log(`[Image API] resposta recebida: ${imageData.imageUrl}`);
-        recipeData.imageUrl = imageData.imageUrl;
-      } else {
-        console.warn(`[Image API] Nenhuma imagem retornada pela API.`);
-        recipeData.imageUrl = FOOD_PLACEHOLDER;
-      }
+    if (imageData.imageUrl) {
+  console.log(`[Image API] resposta recebida: ${imageData.imageUrl}`);
+  recipeData.imageUrl = imageData.imageUrl;
+} else {
+  console.warn(`[Image API] Nenhuma imagem retornada pela API.`);
+  recipeData.imageUrl = getFallbackImage(recipeData.title);
+}
     } catch (e: any) {
       if (e.name === 'AbortError') {
         console.error(`[Image API] timeout na geração da imagem.`);
       } else {
         console.error(`[Image API] erro na geração:`, e);
       }
-      recipeData.imageUrl = FOOD_PLACEHOLDER;
+     recipeData.imageUrl = getFallbackImage(recipeData.title);
     }
 
     return recipeData;
