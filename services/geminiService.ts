@@ -81,7 +81,7 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
       console.log(`[Image API] chamando geração para: ${recipeData.title}`);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 seconds timeout
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 seconds timeout
 
       const imageResponse = await fetch('/api/generate-recipe-image', {
         method: 'POST',
@@ -113,13 +113,12 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
   recipeData.imageUrl = getFallbackImage(recipeData.title);
 }
     } catch (e: any) {
-      if (e.name === 'AbortError') {
-        console.error(`[Image API] timeout na geração da imagem.`);
-      } else {
-        console.error(`[Image API] erro na geração:`, e);
-      }
-     recipeData.imageUrl = getFallbackImage(recipeData.title);
-    }
+     if (e.name === 'AbortError') {
+  console.error(`[Image API] timeout na geração da imagem após 120s.`);
+} else {
+  console.error(`[Image API] erro na geração:`, e);
+}
+recipeData.imageUrl = '';
 
     return recipeData;
   } catch (error) {
