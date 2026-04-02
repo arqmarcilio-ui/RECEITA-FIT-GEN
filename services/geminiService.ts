@@ -112,13 +112,14 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
   console.warn(`[Image API] Nenhuma imagem retornada pela API.`);
   recipeData.imageUrl = getFallbackImage(recipeData.title);
 }
-    } catch (e: any) {
-     if (e.name === 'AbortError') {
-  console.error(`[Image API] timeout na geração da imagem após 120s.`);
-} else {
-  console.error(`[Image API] erro na geração:`, e);
-}
-recipeData.imageUrl = '';
+   } catch (e: any) {
+      if (e.name === 'AbortError') {
+        console.error(`[Image API] timeout na geração da imagem após 120s.`);
+      } else {
+        console.error(`[Image API] erro na geração:`, e);
+      }
+      recipeData.imageUrl = '';
+    }
 
     return recipeData;
   } catch (error) {
