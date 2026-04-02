@@ -2,10 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
 import { getFirebaseAdmin } from './_firebase-admin.js';
 
-function getFallbackImage(title: string) {
-  return `https://source.unsplash.com/800x600/?food,${encodeURIComponent(title)}`;
-}
-
 async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 2000): Promise<T> {
   let lastError: unknown;
 
@@ -134,10 +130,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error(`[Image API] erro:`, error);
     console.log(`[Image Source] Placeholder`);
     
-    return res.status(200).json({
-      success: false,
-      imageUrl: getFallbackImage(title),
-      error: error.message || 'Unknown error',
-    });
+   return res.status(200).json({
+  success: false,
+  imageUrl: '',
+  error: error.message || 'Unknown error',
+});
   }
 }
