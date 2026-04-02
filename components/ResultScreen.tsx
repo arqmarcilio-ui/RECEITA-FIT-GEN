@@ -1,20 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { RecipeResult } from '../types';
 import { translations, Language } from '../translations';
-import { 
-  ArrowLeft, 
-  Heart, 
-  Share2, 
-  Clock, 
-  DollarSign, 
-  CheckCircle2, 
-  ShoppingCart, 
+import {
+  ArrowLeft,
+  Heart,
+  Share2,
+  CheckCircle2,
   UtensilsCrossed,
-  Info,
-  ChevronRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 interface ResultScreenProps {
   recipe: RecipeResult;
@@ -39,13 +33,13 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
   const toggleFavorite = () => {
     const favsStr = localStorage.getItem('fit_gen_favs');
     let favs = favsStr ? JSON.parse(favsStr) : [];
-    
+
     if (isFavorite) {
       favs = favs.filter((f: RecipeResult) => f.id !== recipe.id && f.tempId !== recipe.tempId);
     } else {
       favs.push({ ...recipe, isFavorite: true });
     }
-    
+
     localStorage.setItem('fit_gen_favs', JSON.stringify(favs));
     setIsFavorite(!isFavorite);
   };
@@ -75,19 +69,19 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
   };
 
   const toggleIngredient = (ing: string) => {
-    setCheckedIngredients(prev => 
+    setCheckedIngredients(prev =>
       prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]
     );
   };
 
-  const MacroBar = ({ label, value, color, percentage }: { label: string, value: string, color: string, percentage: number }) => (
+  const MacroBar = ({ label, value, color, percentage }: { label: string; value: string; color: string; percentage: number }) => (
     <div className="space-y-1.5">
       <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-olive/60">
         <span>{label}</span>
         <span className="text-ink">{value}</span>
       </div>
       <div className="h-1.5 w-full bg-olive/5 rounded-full overflow-hidden">
-        <motion.div 
+        <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(percentage, 100)}%` }}
           transition={{ duration: 1, ease: "easeOut" }}
@@ -99,7 +93,6 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-32">
-      {/* Header */}
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-8 py-6 flex items-center justify-between">
         <button onClick={onBack} className="flex items-center gap-2 p-3 bg-slate-100 text-slate-900 rounded-full hover:bg-slate-200 transition-all group">
           <ArrowLeft className="w-5 h-5" />
@@ -107,7 +100,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
         </button>
         <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">{t.recipeResult}</h2>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={toggleFavorite}
             className={`p-3 rounded-full transition-all ${isFavorite ? 'bg-rose-50 text-rose-500' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}
           >
@@ -120,20 +113,22 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
       </div>
 
       <div className="px-8 space-y-10">
-        {/* Hero Section */}
         <div className="space-y-6">
           <div className="relative rounded-[2.5rem] overflow-hidden aspect-video shadow-2xl">
-           <img 
-  src={
-    recipe.imageUrl
-      ? `${recipe.imageUrl}${recipe.imageUrl.includes('?') ? '&' : '?'}v=${recipe.tempId || recipe.id || Date.now()}`
-      : `https://picsum.photos/seed/${recipe.id || recipe.tempId}/800/450`
-  }
-  alt={recipe.title}
-  className="w-full h-full object-cover"
-  referrerPolicy="no-referrer"
-/>
+            {recipe.imageUrl ? (
+              <img
+                src={`${recipe.imageUrl}${recipe.imageUrl.includes('?') ? '&' : '?'}v=${recipe.tempId || recipe.id || Date.now()}`}
+                alt={recipe.title}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-500 text-sm font-bold px-6 text-center">
+                Não foi possível gerar a imagem desta receita.
+              </div>
+            )}
           </div>
+
           <div className="space-y-3">
             <h1 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tighter">
               {recipe.title}
@@ -144,7 +139,6 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
           </div>
         </div>
 
-        {/* Macros Grid */}
         <div className="grid grid-cols-4 gap-3">
           <div className="p-5 bg-slate-100 rounded-3xl text-center space-y-1">
             <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest">CAL</p>
@@ -164,15 +158,14 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex p-1.5 bg-slate-100 rounded-full">
-          <button 
+          <button
             onClick={() => setShowShoppingList(false)}
             className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${!showShoppingList ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             {t.recipeResult}
           </button>
-          <button 
+          <button
             onClick={() => setShowShoppingList(true)}
             className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${showShoppingList ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
@@ -180,7 +173,6 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
           </button>
         </div>
 
-        {/* Tab Content */}
         <div className="min-h-[300px]">
           {!showShoppingList ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
@@ -224,8 +216,8 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
                 </p>
               </div>
               {recipe.ingredients.map((ing, i) => (
-                <button 
-                  key={i} 
+                <button
+                  key={i}
                   onClick={() => toggleIngredient(ing)}
                   className={`w-full flex items-center gap-5 p-5 rounded-3xl transition-all text-left ${checkedIngredients.includes(ing) ? 'bg-slate-100 opacity-50' : 'bg-white border-2 border-slate-100 shadow-sm'}`}
                 >
@@ -240,16 +232,15 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
         </div>
       </div>
 
-      {/* Sticky Bottom Action */}
       <div className="fixed bottom-0 left-0 right-0 p-8 bg-white/80 backdrop-blur-md z-50">
         <div className="max-w-xl mx-auto flex gap-4">
-          <button 
+          <button
             onClick={onBack}
             className="flex-1 py-6 bg-slate-100 text-slate-900 rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-sm active:scale-95 transition-all"
           >
             {t.backToStart}
           </button>
-          <button 
+          <button
             onClick={handleWhatsAppShare}
             className="flex-1 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl active:scale-95 transition-all flex items-center justify-center"
           >
