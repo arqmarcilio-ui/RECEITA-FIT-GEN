@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
 import { getFirebaseAdmin } from './_firebase-admin.js';
-import firebaseConfig from '../firebase-applet-config.json';
 
 function getFallbackImage(title: string) {
   return `https://source.unsplash.com/800x600/?food,${encodeURIComponent(title)}`;
