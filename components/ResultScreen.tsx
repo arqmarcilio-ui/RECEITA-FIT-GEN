@@ -123,12 +123,16 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
         {/* Hero Section */}
         <div className="space-y-6">
           <div className="relative rounded-[2.5rem] overflow-hidden aspect-video shadow-2xl">
-            <img 
-              src={recipe.imageUrl || `https://picsum.photos/seed/${recipe.id}/800/450`} 
-              alt={recipe.title}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+           <img 
+  src={
+    recipe.imageUrl
+      ? `${recipe.imageUrl}${recipe.imageUrl.includes('?') ? '&' : '?'}v=${recipe.tempId || recipe.id || Date.now()}`
+      : `https://picsum.photos/seed/${recipe.id || recipe.tempId}/800/450`
+  }
+  alt={recipe.title}
+  className="w-full h-full object-cover"
+  referrerPolicy="no-referrer"
+/>
           </div>
           <div className="space-y-3">
             <h1 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tighter">
