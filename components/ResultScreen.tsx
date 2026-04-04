@@ -62,11 +62,26 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
     }
   };
 
-  const handleWhatsAppShare = () => {
-    const text = `*${recipe.title}*\n\n${recipe.description}\n\n*Ingredientes:*\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\n*Modo de Preparo:*\n${recipe.instructions.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\nGerado por Receita Fit Gen`;
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-  };
+const handleWhatsAppShare = () => {
+  const imageLink = recipe.imageUrl 
+    ? `\n\n📸 Imagem do prato:\n${recipe.imageUrl}` 
+    : '';
+
+  const text = `*${recipe.title}*
+
+${recipe.description}
+
+*Ingredientes:*
+${recipe.ingredients.map(i => `- ${i}`).join('\n')}
+
+*Modo de Preparo:*
+${recipe.instructions.map((s, i) => `${i + 1}. ${s}`).join('\n')}${imageLink}
+
+Gerado por Receita Fit Gen`;
+
+  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+};
 
   const toggleIngredient = (ing: string) => {
     setCheckedIngredients(prev =>
