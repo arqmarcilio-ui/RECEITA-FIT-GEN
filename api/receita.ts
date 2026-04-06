@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const PROJECT_ID = firebaseConfig.projectId;
-const DATABASE_ID = firebaseConfig.firestoreDatabaseId;
+const PROJECT_ID = process.env.FIREBASE_PROJECT_ID;
+const DATABASE_ID = "(default)";
 
 function parseFirestore(fields: any) {
   const result: any = {};
