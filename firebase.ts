@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/
 import { getFirestore, doc, onSnapshot, getDocFromServer, collection, addDoc, query, where, orderBy, limit, getDocs, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 const firebaseConfig = {
-  apiKey: "AIzaSyB3ahZb8ww9FQs-ZGKm8ooXy6l5gjGeiDE",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "receita-fit-gen-2.firebaseapp.com",
   projectId: "receita-fit-gen-2",
   storageBucket: "receita-fit-gen-2.firebasestorage.app",
