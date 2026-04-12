@@ -21,6 +21,9 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
   const [isFavorite, setIsFavorite] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
   const [checkedIngredients, setCheckedIngredients] = useState<string[]>([]);
+  const [imageState, setImageState] = useState<'loading' | 'error' | 'ready'>(
+    recipe.imageUrl ? 'ready' : 'loading'
+  );
 
   useEffect(() => {
     const favsStr = localStorage.getItem('fit_gen_favs');
@@ -29,6 +32,21 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
       setIsFavorite(favs.some((f: RecipeResult) => f.id === recipe.id || f.tempId === recipe.tempId));
     }
   }, [recipe.id, recipe.tempId]);
+
+  useEffect(() => {
+    if (recipe.imageUrl) {
+      setImageState('ready');
+      return;
+    }
+
+    setImageState('loading');
+
+    const timer = setTimeout(() => {
+      setImageState('error');
+    }, 12000);
+
+    return () => clearTimeout(timer);
+  }, [recipe.imageUrl]);
 
   const toggleFavorite = () => {
     const favsStr = localStorage.getItem('fit_gen_favs');
@@ -62,12 +80,12 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
     }
   };
 
-const handleWhatsAppShare = () => {
-  const imageLink = recipe.imageUrl 
-    ? `\n\n📸 Imagem do prato:\n${recipe.imageUrl}` 
-    : '';
+  const handleWhatsAppShare = () => {
+    const imageLink = recipe.imageUrl
+      ? `\n\n📸 Imagem do prato:\n${recipe.imageUrl}`
+      : '';
 
-  const text = `*${recipe.title}*
+    const text = `*${recipe.title}*
 
 ${recipe.description}
 
@@ -79,9 +97,9 @@ ${recipe.instructions.map((s, i) => `${i + 1}. ${s}`).join('\n')}${imageLink}
 
 Gerado por Receita Fit Gen`;
 
-  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-  window.open(url, '_blank');
-};
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
 
   const toggleIngredient = (ing: string) => {
     setCheckedIngredients(prev =>
@@ -130,16 +148,20 @@ Gerado por Receita Fit Gen`;
       <div className="px-8 space-y-10">
         <div className="space-y-6">
           <div className="relative rounded-[2.5rem] overflow-hidden aspect-video shadow-2xl">
-            {recipe.imageUrl ? (
+            {recipe.imageUrl && imageState === 'ready' ? (
               <img
                 src={`${recipe.imageUrl}${recipe.imageUrl.includes('?') ? '&' : '?'}v=${recipe.tempId || recipe.id || Date.now()}`}
                 alt={recipe.title}
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
               />
+            ) : imageState === 'loading' ? (
+              <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-500 text-sm font-bold px-6 text-center animate-pulse">
+                🍽️ Gerando imagem do prato...
+              </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-500 text-sm font-bold px-6 text-center">
-                Não foi possível gerar a imagem desta receita.
+                ❌ Não foi possível gerar a imagem desta receita.
               </div>
             )}
           </div>
