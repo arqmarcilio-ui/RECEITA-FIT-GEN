@@ -63,31 +63,90 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
   };
 
   const handleShare = async () => {
+    if (showShoppingList) {
+      if (checkedIngredients.length === 0) {
+        alert('Marque os ingredientes que você precisa comprar antes de compartilhar.');
+        return;
+      }
+
+      const text = `Lista de compras — ${recipe.title}
+
+Itens para comprar:
+${checkedIngredients.map(i => `- ${i}`).join('\n')}
+
+Gerado por Receita Fit Gen`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Lista de compras — ${recipe.title}`,
+            text,
+          });
+        } catch (err) {
+          console.error("Erro ao compartilhar:", err);
+        }
+      } else {
+        navigator.clipboard.writeText(text);
+        alert('Lista copiada!');
+      }
+
+      return;
+    }
+
     const shareUrl = `${window.location.origin}?id=${recipe.id || recipe.tempId}`;
+
+    const text = `${recipe.title}
+
+${recipe.description}
+
+💰 Custo estimado: ${recipe.estimatedCost || '—'}`;
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: recipe.title,
-          text: recipe.description,
+          text,
           url: shareUrl,
         });
       } catch (err) {
         console.error("Erro ao compartilhar:", err);
       }
     } else {
-      navigator.clipboard.writeText(shareUrl);
-      alert('Link copiado para a área de transferência!');
+      navigator.clipboard.writeText(`${text}\n\n${shareUrl}`);
+      alert('Receita copiada!');
     }
   };
 
   const handleWhatsAppShare = () => {
+    if (showShoppingList) {
+      if (checkedIngredients.length === 0) {
+        alert('Marque os ingredientes que você precisa comprar.');
+        return;
+      }
+
+      const text = `*Lista de compras — ${recipe.title}*
+
+*Itens para comprar:*
+${checkedIngredients.map(i => `- ${i}`).join('\n')}
+
+Gerado por Receita Fit Gen`;
+
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+      return;
+    }
+
     const imageLink = recipe.imageUrl
       ? `\n\n📸 Imagem do prato:\n${recipe.imageUrl}`
       : '';
 
+    const estimatedCostBlock = recipe.estimatedCost
+      ? `\n\n💰 Custo estimado: ${recipe.estimatedCost}`
+      : '';
+
     const text = `*${recipe.title}*
 
-${recipe.description}
+${recipe.description}${estimatedCostBlock}
 
 *Ingredientes:*
 ${recipe.ingredients.map(i => `- ${i}`).join('\n')}
@@ -173,11 +232,11 @@ Gerado por Receita Fit Gen`;
             <p className="text-slate-400 font-bold text-sm uppercase tracking-tight leading-relaxed">
               {recipe.description}
             </p>
-          {recipe.estimatedCost && (
-  <p className="text-emerald-500 font-bold text-sm uppercase tracking-tight leading-relaxed">
-    💰 Custo estimado: {recipe.estimatedCost}
-  </p>
-)}
+            {recipe.estimatedCost && (
+              <p className="text-emerald-500 font-bold text-sm uppercase tracking-tight leading-relaxed">
+                💰 Custo estimado: {recipe.estimatedCost}
+              </p>
+            )}
           </div>
         </div>
 
