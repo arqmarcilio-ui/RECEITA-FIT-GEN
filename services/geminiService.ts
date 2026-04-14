@@ -34,18 +34,23 @@ export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResu
     apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY || ''
   });
 
+  // 🔥 INSTRUÇÕES MELHORADAS
   const systemInstruction = `Você é um nutricionista sênior e chef de cozinha renomado especializado em culinária saudável e funcional (FIT).
 Sua missão é criar receitas que sejam nutricionalmente densas, fáceis de preparar e deliciosas.
+
 REGRAS CRÍTICAS:
 1. O sabor deve ser estritamente o solicitado.
 2. Respeite TODAS as restrições dietéticas selecionadas.
 3. O custo deve ser realista para o mercado brasileiro atual (R$).
-4. Retorne APENAS o JSON válido seguindo o esquema.`;
+4. A estimativa de custo deve ser obrigatoriamente uma faixa de preço em reais, no formato: "R$ 15,00 - R$ 25,00".
+5. Nunca retorne um valor único. Sempre utilize intervalo de preço.
+6. Retorne APENAS o JSON válido seguindo o esquema.`;
 
   const dietProfile = prefs.dietaryFilters.length > 0
     ? prefs.dietaryFilters.join(', ')
     : DietaryFilter.SEM_RESTRICAO;
 
+  // 🔥 PROMPT REFORÇADO
   const prompt = `Gere uma receita FIT personalizada:
 - Para ${prefs.peopleCount} pessoa(s).
 - Momento: ${prefs.mealType} ${prefs.dishType ? `(Estilo desejado: ${prefs.dishType})` : ''}
@@ -56,7 +61,14 @@ REGRAS CRÍTICAS:
 - Ingredientes para usar: ${prefs.ingredients || 'Os melhores disponíveis'}
 - Ingredientes para EVITAR: ${prefs.dispensableIngredients || 'Nenhum'}
 
-Forneça uma descrição apetitosa e instruções passo a passo claras.`;
+Forneça uma descrição apetitosa e instruções passo a passo claras.
+
+Inclua também uma estimativa de custo total dos ingredientes no Brasil.
+A estimativa deve:
+- considerar todos os ingredientes da receita
+- usar preços médios de supermercado
+- estar no formato: "R$ 15,00 - R$ 25,00"
+- nunca retornar valor único, sempre intervalo`;
 
   try {
     const response = await withRetry(() =>
@@ -86,7 +98,15 @@ Forneça uma descrição apetitosa e instruções passo a passo claras.`;
                 required: ["protein", "carbs", "fats", "calories"]
               }
             },
-            required: ["title", "description", "ingredients", "instructions", "macros", "estimatedTime", "estimatedCost"]
+            required: [
+              "title",
+              "description",
+              "ingredients",
+              "instructions",
+              "macros",
+              "estimatedTime",
+              "estimatedCost"
+            ]
           },
         },
       })
