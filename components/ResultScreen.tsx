@@ -173,6 +173,11 @@ Gerado por Receita Fit Gen`;
             <p className="text-slate-400 font-bold text-sm uppercase tracking-tight leading-relaxed">
               {recipe.description}
             </p>
+          {recipe.estimatedCost && (
+  <p className="text-emerald-500 font-bold text-sm uppercase tracking-tight leading-relaxed">
+    💰 Custo estimado: {recipe.estimatedCost}
+  </p>
+)}
           </div>
         </div>
 
