@@ -237,9 +237,6 @@ Gerado por Receita Fit Gen`;
                 💰 Custo estimado: {recipe.estimatedCost}
               </p>
             )}
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight leading-relaxed pt-2">
-  Receitas geradas por IA. Em caso de alergias severas, confirme os ingredientes antes do consumo. Em caso de dúvidas, consulte seu médico ou nutricionista.
-</p>
           </div>
         </div>
 
