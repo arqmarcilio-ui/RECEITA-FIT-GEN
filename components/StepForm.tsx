@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DietaryFilter, MealType, CalorieLevel, Flavor, SkillLevel, UserPreferences } from '../types';
 import { Language, translations } from '../translations';
@@ -319,6 +318,13 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="px-8 pb-2">
+        <p className="text-[10px] text-slate-400 text-center leading-relaxed font-bold uppercase tracking-tight">
+          Receitas geradas por IA. Confira ingredientes em caso de alergias severas.
+        </p>
       </div>
 
       {/* Footer Actions */}
