@@ -332,7 +332,11 @@ Gerado por Receita Fit Gen`;
           )}
         </div>
       </div>
-
+<div className="px-8 pb-40 pt-6">
+  <p className="text-[11px] text-slate-400 text-center font-semibold leading-relaxed">
+    Receitas geradas por IA. Em caso de alergias severas, confirme os ingredientes e rótulos antes do consumo. Em caso de dúvidas, consulte seu médico ou nutricionista.
+  </p>
+</div>
       <div className="fixed bottom-0 left-0 right-0 p-8 bg-white/80 backdrop-blur-md z-50">
         <div className="max-w-xl mx-auto flex gap-4">
           <button
