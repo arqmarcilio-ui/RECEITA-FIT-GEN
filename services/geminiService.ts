@@ -29,14 +29,90 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 2500): 
   throw lastError;
 }
 
+function containsForbiddenIngredients(ingredients: string[], dietaryFilters: DietaryFilter[]): boolean {
+  const normalized = ingredients.map(i => i.toLowerCase());
+
+  const glutenTerms = [
+    "trigo",
+    "farinha de trigo",
+    "centeio",
+    "cevada",
+    "malte",
+    "pão",
+    "macarrão",
+    "massa comum",
+    "biscoito comum"
+  ];
+
+  const lactoseTerms = [
+    "leite",
+    "queijo",
+    "mussarela",
+    "parmesão",
+    "requeijão",
+    "manteiga",
+    "creme de leite",
+    "iogurte",
+    "leite condensado"
+  ];
+
+  const veganTerms = [
+    "carne",
+    "frango",
+    "peixe",
+    "atum",
+    "salmão",
+    "ovo",
+    "ovos",
+    "leite",
+    "queijo",
+    "manteiga",
+    "iogurte",
+    "mel"
+  ];
+
+  const sugarTerms = [
+    "açúcar",
+    "acucar",
+    "leite condensado",
+    "doce de leite",
+    "chocolate ao leite",
+    "achocolatado"
+  ];
+
+  const hasAny = (terms: string[]) =>
+    normalized.some(ingredient => terms.some(term => ingredient.includes(term)));
+
+  if (dietaryFilters.includes(DietaryFilter.SEM_GLUTEN) && hasAny(glutenTerms)) {
+    return true;
+  }
+
+  if (dietaryFilters.includes(DietaryFilter.SEM_LACTOSE) && hasAny(lactoseTerms)) {
+    return true;
+  }
+
+  if (dietaryFilters.includes(DietaryFilter.VEGANO) && hasAny(veganTerms)) {
+    return true;
+  }
+
+  if (dietaryFilters.includes(DietaryFilter.SEM_ACUCAR) && hasAny(sugarTerms)) {
+    return true;
+  }
+
+  return false;
+}
+
 export const generateRecipe = async (prefs: UserPreferences): Promise<RecipeResult> => {
   const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY || ''
   });
 
-  // 🔥 INSTRUÇÕES MELHORADAS
+  const dietProfile = prefs.dietaryFilters.length > 0
+    ? prefs.dietaryFilters.join(', ')
+    : DietaryFilter.SEM_RESTRICAO;
+
   const systemInstruction = `Você é um nutricionista sênior e chef de cozinha renomado especializado em culinária saudável e funcional (FIT).
-Sua missão é criar receitas que sejam nutricionalmente densas, fáceis de preparar e deliciosas.
+Sua missão é criar receitas nutricionalmente coerentes, seguras, fáceis de preparar e saborosas.
 
 REGRAS CRÍTICAS:
 1. O sabor deve ser estritamente o solicitado.
@@ -44,13 +120,17 @@ REGRAS CRÍTICAS:
 3. O custo deve ser realista para o mercado brasileiro atual (R$).
 4. A estimativa de custo deve ser obrigatoriamente uma faixa de preço em reais, no formato: "R$ 15,00 - R$ 25,00".
 5. Nunca retorne um valor único. Sempre utilize intervalo de preço.
-6. Retorne APENAS o JSON válido seguindo o esquema.`;
+6. Retorne APENAS o JSON válido seguindo o esquema.
 
-  const dietProfile = prefs.dietaryFilters.length > 0
-    ? prefs.dietaryFilters.join(', ')
-    : DietaryFilter.SEM_RESTRICAO;
+REGRAS DE SEGURANÇA ALIMENTAR:
+- Se o usuário selecionar "Sem Glúten", proíba trigo, centeio, cevada, malte e derivados. Em caso de dúvida, não use o ingrediente.
+- Se o usuário selecionar "Sem Lactose", proíba leite, queijo comum, iogurte comum, creme de leite comum, manteiga comum e derivados lácteos comuns. Em caso de dúvida, não use o ingrediente.
+- Se o usuário selecionar "Vegano", proíba carnes, peixes, ovos, leite, queijo, manteiga, mel e qualquer derivado animal.
+- Se o usuário selecionar "Sem Açúcar", proíba açúcar comum e ingredientes claramente açucarados.
+- Em caso de qualquer conflito entre sabor e segurança alimentar, a segurança alimentar tem prioridade absoluta.
+- Nunca sugira substituições duvidosas para alergias/restrições severas sem deixar claro que são apenas sugestões culinárias.
+- Se houver dúvida sobre um ingrediente, exclua esse ingrediente da receita.`;
 
-  // 🔥 PROMPT REFORÇADO
   const prompt = `Gere uma receita FIT personalizada:
 - Para ${prefs.peopleCount} pessoa(s).
 - Momento: ${prefs.mealType} ${prefs.dishType ? `(Estilo desejado: ${prefs.dishType})` : ''}
@@ -118,6 +198,10 @@ A estimativa deve:
 
     const recipeData = JSON.parse(response.text) as RecipeResult;
     recipeData.tempId = Math.random().toString(36).substring(7);
+
+    if (containsForbiddenIngredients(recipeData.ingredients, prefs.dietaryFilters)) {
+      throw new Error("A receita gerada contém ingrediente incompatível com as restrições selecionadas.");
+    }
 
     console.log(`[Gemini] Receita gerada: "${recipeData.title}" (tempId: ${recipeData.tempId})`);
 
