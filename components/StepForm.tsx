@@ -320,8 +320,39 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
         </AnimatePresence>
       </div>
 
-      {/* Footer Actions */}
-      <div className="p-8 bg-white flex gap-4 absolute bottom-0 left-0 right-0">
+     {/* Footer Actions */}
+<div className="p-8 bg-white absolute bottom-0 left-0 right-0 space-y-4">
+
+  {step === totalSteps && (
+    <p className="text-[11px] text-slate-400 text-center font-semibold leading-relaxed px-2">
+      Receitas geradas por IA. Em caso de alergias severas, confirme os ingredientes e rótulos antes do consumo. Em caso de dúvidas, consulte seu médico ou nutricionista.
+    </p>
+  )}
+
+  <div className="flex gap-4">
+    <button 
+      onClick={handleBack} 
+      className="flex-1 py-5 bg-white border-2 border-slate-200 text-slate-900 rounded-3xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all"
+    >
+      {t.back}
+    </button>
+
+    <button 
+      onClick={handleNext} 
+      className="flex-[2] py-5 bg-emerald-500 text-white rounded-3xl font-black text-sm uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+    >
+      {step === totalSteps ? (
+        <>
+          {t.generateNow}
+        </>
+      ) : (
+        <>
+          {t.next}
+        </>
+      )}
+    </button>
+  </div>
+</div>
         <button 
           onClick={handleBack} 
           className="flex-1 py-5 bg-white border-2 border-slate-200 text-slate-900 rounded-3xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all"
