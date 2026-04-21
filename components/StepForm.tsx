@@ -313,6 +313,10 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                     value={formData.dispensableIngredients}
                     onChange={e => setFormData({...formData, dispensableIngredients: e.target.value})}
                   />
+
+                  <p className="text-[11px] text-slate-400 text-center font-semibold leading-relaxed pt-3 px-2">
+  Receitas geradas por IA. Em caso de alergias severas, confirme os ingredientes e rótulos antes do consumo. Em caso de dúvidas, consulte seu médico ou nutricionista.
+</p>
                 </div>
               </div>
             </motion.div>
