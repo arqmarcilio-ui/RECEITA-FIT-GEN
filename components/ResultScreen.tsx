@@ -333,7 +333,7 @@ Gerado por Receita Fit Gen`;
         </div>
       </div>
 <div className="px-8 pb-40 pt-6">
-  <p className="text-[11px] text-slate-900 text-center font-semibold leading-relaxed">
+  <p className="text-[14px] text-slate-900 text-center font-semibold leading-relaxed">
    Receitas criadas com IA. Antes do consumo, checar ingredientes, alergias e restrições alimentares. Em caso de dúvidas, consulte médico ou nutricionista.
   </p>
 </div>
