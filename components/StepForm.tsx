@@ -311,7 +311,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                 <div className="space-y-4">
                   <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.availableIngredients}</h3>
                   <textarea 
-                    rows={3}
+                    rows={2}
                     placeholder={t.ingredientsPlaceholder}
                     className="w-full p-5 bg-white border-2 border-slate-300 rounded-[2rem] text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all resize-none"
                     value={formData.ingredients}
@@ -330,7 +330,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   />
 
                   <div className="pt-3 px-2 space-y-3">
-                   <p className="text-[11px] text-slate-800 text-center font-semibold leading-relaxed pt-3 px-2">
+                   <p className="text-[12px] text-slate-800 text-center font-semibold leading-relaxed pt-3 px-2">
   Receitas criadas com IA. Antes do consumo, confirme ingredientes, alergias e restrições alimentares. Em caso de dúvidas, consulte médico ou nutricionista. Ao clicar em <strong>GERAR AGORA</strong>, confirmo que li e concordo.
 </p>
 
