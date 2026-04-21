@@ -325,7 +325,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
       </div>
 
    {/* Footer Actions */}
-<div className="px-8 pt-4 pb-12 bg-white flex gap-4 absolute bottom-4 left-0 right-0">
+<div className="px-8 pt-4 pb-12 bg-white flex gap-4 absolute bottom-10 left-0 right-0">
         <button 
           onClick={handleBack} 
           className="flex-1 py-5 bg-white border-2 border-slate-200 text-slate-900 rounded-3xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all"
