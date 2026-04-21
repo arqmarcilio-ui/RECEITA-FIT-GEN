@@ -330,11 +330,9 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   />
 
                   <div className="pt-3 px-2 space-y-3">
-                    <p className="text-[11px] text-slate-800 text-center font-semibold leading-relaxed">
-                      Receitas geradas por IA. Em caso de alergias severas, confirme os ingredientes e rótulos antes do consumo. Em caso de dúvidas, consulte seu médico ou nutricionista.
-                      <br /><br />
-                      Ao clicar em <strong>GERAR AGORA</strong>, confirmo que estou ciente destas informações.
-                    </p>
+                   <p className="text-[11px] text-slate-800 text-center font-semibold leading-relaxed pt-3 px-2">
+  Receitas criadas com IA. Antes do consumo, confirme ingredientes, alergias e restrições alimentares. Em caso de dúvidas, consulte médico ou nutricionista. Ao clicar em <strong>GERAR AGORA</strong>, confirmo que li e concordo.
+</p>
 
                     <label className="flex items-center justify-center gap-2 text-[11px] text-slate-900 font-bold cursor-pointer">
                       <input
