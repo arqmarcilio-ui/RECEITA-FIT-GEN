@@ -26,9 +26,23 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<UserPreferences>(initialData);
   const [showDishInput, setShowDishInput] = useState(initialData.dishType !== '');
+  const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false);
   const totalSteps = 5;
 
-  const handleNext = () => step < totalSteps ? setStep(step + 1) : onSubmit(formData);
+  const handleNext = () => {
+    if (step < totalSteps) {
+      setStep(step + 1);
+      return;
+    }
+
+    if (!agreedToDisclaimer) {
+      alert('Para continuar, marque "Li e concordo".');
+      return;
+    }
+
+    onSubmit(formData);
+  };
+
   const handleBack = () => step > 1 ? setStep(step - 1) : onCancel();
 
   const toggleDietary = (f: DietaryFilter) => {
@@ -304,6 +318,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                     onChange={e => setFormData({...formData, ingredients: e.target.value})}
                   />
                 </div>
+
                 <div className="space-y-4">
                   <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.avoidIngredients}</h3>
                   <textarea 
@@ -314,9 +329,23 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                     onChange={e => setFormData({...formData, dispensableIngredients: e.target.value})}
                   />
 
-                  <p className="text-[11px] text-slate-400 text-center font-semibold leading-relaxed pt-3 px-2">
-  Receitas geradas por IA. Em caso de alergias severas, confirme os ingredientes e rótulos antes do consumo. Em caso de dúvidas, consulte seu médico ou nutricionista.
-</p>
+                  <div className="pt-3 px-2 space-y-3">
+                    <p className="text-[11px] text-slate-800 text-center font-semibold leading-relaxed">
+                      Receitas geradas por IA. Em caso de alergias severas, confirme os ingredientes e rótulos antes do consumo. Em caso de dúvidas, consulte seu médico ou nutricionista.
+                      <br /><br />
+                      Ao clicar em <strong>GERAR AGORA</strong>, confirmo que estou ciente destas informações.
+                    </p>
+
+                    <label className="flex items-center justify-center gap-2 text-[11px] text-slate-900 font-bold cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={agreedToDisclaimer}
+                        onChange={(e) => setAgreedToDisclaimer(e.target.checked)}
+                        className="w-4 h-4 accent-emerald-500"
+                      />
+                      Li e concordo
+                    </label>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -324,17 +353,23 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
         </AnimatePresence>
       </div>
 
-   {/* Footer Actions */}
-<div className="px-8 pt-4 pb-12 bg-white flex gap-4 absolute bottom-10 left-0 right-0">
+      {/* Footer Actions */}
+      <div className="px-8 pt-4 pb-12 bg-white flex gap-4 absolute bottom-10 left-0 right-0">
         <button 
           onClick={handleBack} 
           className="flex-1 py-5 bg-white border-2 border-slate-200 text-slate-900 rounded-3xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all"
         >
           {t.back}
         </button>
+
         <button 
-          onClick={handleNext} 
-          className="flex-[2] py-5 bg-emerald-500 text-white rounded-3xl font-black text-sm uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          onClick={handleNext}
+          disabled={step === totalSteps && !agreedToDisclaimer}
+          className={`flex-[2] py-5 rounded-3xl font-black text-sm uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 ${
+            step === totalSteps && !agreedToDisclaimer
+              ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
+              : 'bg-emerald-500 text-white'
+          }`}
         >
           {step === totalSteps ? (
             <>
