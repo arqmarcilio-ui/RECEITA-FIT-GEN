@@ -26,7 +26,7 @@ const App: React.FC = () => {
   dishType: '',
   cookingMethod: 'Não definido',
   peopleCount: 1,
-    calorieLevel: CalorieLevel.MEDIO,
+    calorieLevel: CalorieLevel.NAO_DEFINIDO,
     flavor: Flavor.SALGADO,
     ingredients: '',
     dispensableIngredients: '',
