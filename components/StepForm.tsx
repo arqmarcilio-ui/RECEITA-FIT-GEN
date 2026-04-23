@@ -25,10 +25,11 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
   const t = translations[language];
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<UserPreferences>(initialData);
-  const [showDishInput, setShowDishInput] = useState(initialData.dishType !== '');
- const [showCustomPeopleInput, setShowCustomPeopleInput] = useState(false);
+const [showDishInput, setShowDishInput] = useState(initialData.dishType !== '');
+const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false);
+const [showCustomPeopleInput, setShowCustomPeopleInput] = useState(false);
 const [customPeopleValue, setCustomPeopleValue] = useState('');
-  const totalSteps = 5;
+const totalSteps = 5;
 
   const handleNext = () => {
     if (step < totalSteps) {
