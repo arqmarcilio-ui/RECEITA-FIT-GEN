@@ -144,6 +144,16 @@ REGRAS DE SEGURANÇA ALIMENTAR:
 
 Forneça uma descrição apetitosa e instruções passo a passo claras.
 
+REGRAS DE PREPARO:
+- Respeite obrigatoriamente a forma de cozimento escolhida.
+- Se o usuário escolher Airfryer, use apenas Airfryer.
+- Se escolher Fogão, use fogão/panela/frigideira.
+- Se escolher Forno, use forno.
+- Se escolher Micro-ondas, use micro-ondas.
+- Se escolher Sem cozimento, gere receita sem aquecer, assar ou cozinhar.
+- Se escolher Não definido, escolha o método mais adequado.
+- Nunca utilize método diferente do selecionado.
+
 Inclua também uma estimativa de custo total dos ingredientes no Brasil.
 A estimativa deve:
 - considerar todos os ingredientes da receita
