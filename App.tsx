@@ -20,11 +20,12 @@ const App: React.FC = () => {
   const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist'>('splash');
   const [language, setLanguage] = useState<Language>('pt');
   const t = translations[language];
-  const [prefs, setPrefs] = useState<UserPreferences>({
-    dietaryFilters: [DietaryFilter.SEM_RESTRICAO],
-    mealType: MealType.ALMOCO,
-    dishType: '',
-    peopleCount: 1,
+ const [prefs, setPrefs] = useState<UserPreferences>({
+  dietaryFilters: [DietaryFilter.SEM_RESTRICAO],
+  mealType: MealType.ALMOCO,
+  dishType: '',
+  cookingMethod: 'Não definido',
+  peopleCount: 1,
     calorieLevel: CalorieLevel.MEDIO,
     flavor: Flavor.SALGADO,
     ingredients: '',
