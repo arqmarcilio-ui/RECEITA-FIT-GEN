@@ -207,7 +207,7 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
   return (
     <div className="max-w-xl mx-auto min-h-screen bg-white relative font-sans selection:bg-emerald-100">
      {/* Header with Logout */}
-<div className="absolute top-0 right-24 z-50 flex flex-col items-end gap-2">
+<div className="absolute top-6 right-6 z-50 flex flex-col items-end gap-2">
 
   <button 
     onClick={() => signOut(auth)}
