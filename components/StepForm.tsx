@@ -92,23 +92,9 @@ const totalSteps = 5;
             <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
               {t.step} {step} {t.of} {totalSteps}
             </p>
-            <div className="flex items-center gap-2">
-  <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none">
-    {t.customize}
-  </h2>
-
-  {window.location.pathname && (
-    <button
-      onClick={() => {
-        const event = new CustomEvent('openAdminPanel');
-        window.dispatchEvent(event);
-      }}
-      className="px-3 py-1 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest"
-    >
-      Admin
-    </button>
-  )}
-</div>
+            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none">
+  {t.customize}
+</h2>
           </div>
           <div className="text-emerald-500 font-black text-lg">
             {progress}%
