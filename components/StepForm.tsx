@@ -26,7 +26,8 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<UserPreferences>(initialData);
   const [showDishInput, setShowDishInput] = useState(initialData.dishType !== '');
-  const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false);
+ const [showCustomPeopleInput, setShowCustomPeopleInput] = useState(false);
+const [customPeopleValue, setCustomPeopleValue] = useState('');
   const totalSteps = 5;
 
   const handleNext = () => {
@@ -239,24 +240,61 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               </div>
               
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.people}</p>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <button
-                        key={num}
-                        onClick={() => setFormData(p => ({...p, peopleCount: num}))}
-                        className={`flex-1 py-5 border-2 rounded-xl transition-all font-black text-xs ${
-                          formData.peopleCount === num
-                            ? 'bg-emerald-50/50 border-emerald-500 text-emerald-600'
-                            : 'bg-white border-slate-300 text-slate-800 hover:border-emerald-500 hover:text-emerald-500'
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <div className="space-y-2">
+  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.people}</p>
+
+  <div className="flex gap-2">
+    {[1, 2, 3, 4].map((num) => (
+      <button
+        key={num}
+        onClick={() => {
+          setFormData(p => ({ ...p, peopleCount: num }));
+          setShowCustomPeopleInput(false);
+          setCustomPeopleValue('');
+        }}
+        className={`flex-1 py-5 border-2 rounded-xl transition-all font-black text-xs ${
+          formData.peopleCount === num && !showCustomPeopleInput
+            ? 'bg-emerald-50/50 border-emerald-500 text-emerald-600'
+            : 'bg-white border-slate-300 text-slate-800 hover:border-emerald-500 hover:text-emerald-500'
+        }`}
+      >
+        {num}
+      </button>
+    ))}
+
+    <button
+      onClick={() => setShowCustomPeopleInput(true)}
+      className={`flex-1 py-5 border-2 rounded-xl transition-all font-black text-xs ${
+        showCustomPeopleInput
+          ? 'bg-emerald-50/50 border-emerald-500 text-emerald-600'
+          : 'bg-white border-slate-300 text-slate-800 hover:border-emerald-500 hover:text-emerald-500'
+      }`}
+    >
+      +
+    </button>
+  </div>
+
+  {showCustomPeopleInput && (
+    <div className="pt-2">
+      <input
+        type="number"
+        min="1"
+        placeholder="Digite a quantidade"
+        value={customPeopleValue}
+        onChange={(e) => {
+          const value = e.target.value;
+          setCustomPeopleValue(value);
+
+          const parsed = parseInt(value, 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            setFormData(p => ({ ...p, peopleCount: parsed }));
+          }
+        }}
+        className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
+      />
+    </div>
+  )}
+</div>
 
                 <div className="space-y-2">
                   <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.calories}</h3>
