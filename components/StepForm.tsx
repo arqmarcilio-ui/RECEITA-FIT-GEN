@@ -164,35 +164,65 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               <div className="space-y-2">
                 <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.mealMoment}</h3>
               </div>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.values(MealType).map(m => (
-                    <button 
-                      key={m} 
-                      onClick={() => selectMealType(m)}
-                      className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
-                        formData.mealType === m 
-                          ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
-                          : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
-                      }`}
-                    >
-                      {(t.mealTypes as any)[m]}
-                    </button>
-                  ))}
-                </div>
+           <div className="space-y-4">
+  <div className="grid grid-cols-2 gap-2">
+    {Object.values(MealType).map(m => (
+      <button 
+        key={m} 
+        onClick={() => selectMealType(m)}
+        className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+          formData.mealType === m 
+            ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
+            : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+        }`}
+      >
+        {(t.mealTypes as any)[m]}
+      </button>
+    ))}
+  </div>
 
-                {showDishInput && (
-                  <div className="space-y-2 pt-2">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.specificDish}</p>
-                    <input 
-                      placeholder={t.dishPlaceholder}
-                      className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
-                      value={formData.dishType}
-                      onChange={e => setFormData({...formData, dishType: e.target.value})}
-                    />
-                  </div>
-                )}
-              </div>
+  <div className="space-y-3 pt-3">
+    <h3 className="text-xl font-black text-slate-900 uppercase leading-none tracking-tight">
+      FORMA DE COZIMENTO
+    </h3>
+
+    <div className="grid grid-cols-2 gap-2">
+      {[
+        "Airfryer",
+        "Fogão",
+        "Forno",
+        "Micro-ondas",
+        "Sem cozimento",
+        "Não definido"
+      ].map((item) => (
+        <button
+          key={item}
+          onClick={() => setFormData({ ...formData, cookingMethod: item })}
+          className={`p-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+            formData.cookingMethod === item
+              ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
+              : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+          }`}
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  {showDishInput && (
+    <div className="space-y-2 pt-2">
+      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.specificDish}</p>
+      <input 
+        placeholder={t.dishPlaceholder}
+        className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
+        value={formData.dishType}
+        onChange={e => setFormData({...formData, dishType: e.target.value})}
+      />
+    </div>
+  )}
+</div>
+              
             </motion.div>
           )}
 
