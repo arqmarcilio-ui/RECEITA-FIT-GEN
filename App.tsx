@@ -9,6 +9,7 @@ import ResultScreen from './components/ResultScreen';
 import FavoritesList from './components/FavoritesList';
 import HistoryList from './components/HistoryList';
 import PublicHistoryList from './components/PublicHistoryList';
+import AdminHistoryList from './components/AdminHistoryList';
 import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import { Language, translations } from './translations';
@@ -17,7 +18,7 @@ import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, co
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist'>('splash');
+const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist'>('splash');
   const [language, setLanguage] = useState<Language>('pt');
   const t = translations[language];
  const [prefs, setPrefs] = useState<UserPreferences>({
@@ -176,12 +177,13 @@ const App: React.FC = () => {
 
       // Save to public history in Firestore
       try {
-        await addDoc(collection(db, 'public_recipes'), {
-          ...recipe,
-          createdAt: serverTimestamp(),
-          authorId: user?.uid,
-          authorEmail: user?.email
-        });
+      await addDoc(collection(db, 'public_recipes'), {
+  ...recipe,
+  createdAt: serverTimestamp(),
+  authorId: user?.uid,
+  authorEmail: user?.email,
+  authorName: user?.displayName || user?.email || 'Usuário'
+});
         console.log(`[App] Receita salva no histórico público.`);
       } catch (err) {
         console.error("[App] Erro ao salvar no histórico público:", err);
@@ -204,17 +206,28 @@ const App: React.FC = () => {
 
   return (
     <div className="max-w-xl mx-auto min-h-screen bg-white relative font-sans selection:bg-emerald-100">
-      {/* Header with Logout */}
-      <div className="absolute top-6 right-6 z-50">
-        <button 
-          onClick={() => signOut(auth)}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-full transition-all group"
-          title={t.signOut}
-        >
-          <span className="text-[10px] font-black uppercase tracking-widest">{t.signOut}</span>
-          <LogOut className="w-4 h-4" />
-        </button>
-      </div>
+     {/* Header with Logout */}
+<div className="absolute top-6 right-6 z-50 flex flex-col items-end gap-2">
+
+  <button 
+    onClick={() => signOut(auth)}
+    className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-full transition-all group"
+    title={t.signOut}
+  >
+    <span className="text-[10px] font-black uppercase tracking-widest">{t.signOut}</span>
+    <LogOut className="w-4 h-4" />
+  </button>
+
+  {user?.email === 'arqmarcilio@gmail.com' && (
+    <button
+      onClick={() => setView('adminHist')}
+      className="px-4 py-2 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest"
+    >
+      Admin
+    </button>
+  )}
+
+</div>
 
       {view === 'splash' && (
         <SplashScreen 
@@ -280,6 +293,13 @@ const App: React.FC = () => {
           onBack={() => setView('splash')} 
         />
       )}
+      {view === 'adminHist' && user?.email === 'arqmarcilio@gmail.com' && (
+  <AdminHistoryList
+    language={language}
+    onBack={() => setView('splash')}
+    onSelect={(r) => { setResult(r); setView('result'); }}
+  />
+)}
     </div>
   );
 };
