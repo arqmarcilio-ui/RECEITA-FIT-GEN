@@ -43,6 +43,7 @@ export interface UserPreferences {
   dietaryFilters: DietaryFilter[];
   mealType: MealType;
   dishType: string;
+  cookingMethod: string;
   peopleCount: number;
   calorieLevel: CalorieLevel;
   flavor: Flavor;
