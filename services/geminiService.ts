@@ -30,7 +30,41 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 2500): 
 }
 
 function containsForbiddenIngredients(ingredients: string[], dietaryFilters: DietaryFilter[]): boolean {
-  const normalized = ingredients.map(i => i.toLowerCase());
+  const normalized = ingredients.map(i => i.toLowerCase().trim());
+
+  const hasAnyTerm = (ingredient: string, terms: string[]) =>
+    terms.some(term => ingredient.includes(term));
+
+  const hasSafeGlutenFreeMarker = (ingredient: string) =>
+    ingredient.includes("sem glúten") ||
+    ingredient.includes("sem gluten") ||
+    ingredient.includes("gluten free") ||
+    ingredient.includes("gluten-free") ||
+    ingredient.includes("não contém glúten") ||
+    ingredient.includes("nao contem gluten");
+
+  const hasSafeLactoseFreeMarker = (ingredient: string) =>
+    ingredient.includes("sem lactose") ||
+    ingredient.includes("zero lactose") ||
+    ingredient.includes("lactose free") ||
+    ingredient.includes("lactose-free") ||
+    ingredient.includes("lacfree") ||
+    ingredient.includes("sem leite") ||
+    ingredient.includes("vegetal");
+
+  const hasSafeSugarFreeMarker = (ingredient: string) =>
+    ingredient.includes("sem açúcar") ||
+    ingredient.includes("sem acucar") ||
+    ingredient.includes("zero açúcar") ||
+    ingredient.includes("zero acucar") ||
+    ingredient.includes("sem adição de açúcar") ||
+    ingredient.includes("sem adicao de acucar") ||
+    ingredient.includes("diet");
+
+  const hasSafeVeganMarker = (ingredient: string) =>
+    ingredient.includes("vegano") ||
+    ingredient.includes("vegana") ||
+    ingredient.includes("vegetal");
 
   const glutenTerms = [
     "trigo",
@@ -39,7 +73,9 @@ function containsForbiddenIngredients(ingredients: string[], dietaryFilters: Die
     "cevada",
     "malte",
     "pão",
+    "pao",
     "macarrão",
+    "macarrao",
     "massa comum",
     "biscoito comum"
   ];
@@ -48,8 +84,11 @@ function containsForbiddenIngredients(ingredients: string[], dietaryFilters: Die
     "leite",
     "queijo",
     "mussarela",
+    "muçarela",
     "parmesão",
+    "parmesao",
     "requeijão",
+    "requeijao",
     "manteiga",
     "creme de leite",
     "iogurte",
@@ -62,6 +101,7 @@ function containsForbiddenIngredients(ingredients: string[], dietaryFilters: Die
     "peixe",
     "atum",
     "salmão",
+    "salmao",
     "ovo",
     "ovos",
     "leite",
@@ -77,26 +117,55 @@ function containsForbiddenIngredients(ingredients: string[], dietaryFilters: Die
     "leite condensado",
     "doce de leite",
     "chocolate ao leite",
-    "achocolatado"
+    "achocolatado",
+    "calda de chocolate",
+    "xarope de açúcar",
+    "xarope de acucar"
   ];
 
-  const hasAny = (terms: string[]) =>
-    normalized.some(ingredient => terms.some(term => ingredient.includes(term)));
-
-  if (dietaryFilters.includes(DietaryFilter.SEM_GLUTEN) && hasAny(glutenTerms)) {
-    return true;
+  if (dietaryFilters.includes(DietaryFilter.SEM_GLUTEN)) {
+    const hasForbiddenGluten = normalized.some(ingredient => {
+      if (hasSafeGlutenFreeMarker(ingredient)) return false;
+      return hasAnyTerm(ingredient, glutenTerms);
+    });
+    if (hasForbiddenGluten) return true;
   }
 
-  if (dietaryFilters.includes(DietaryFilter.SEM_LACTOSE) && hasAny(lactoseTerms)) {
-    return true;
+  if (dietaryFilters.includes(DietaryFilter.SEM_LACTOSE)) {
+    const hasForbiddenLactose = normalized.some(ingredient => {
+      if (hasSafeLactoseFreeMarker(ingredient)) return false;
+      return hasAnyTerm(ingredient, lactoseTerms);
+    });
+    if (hasForbiddenLactose) return true;
   }
 
-  if (dietaryFilters.includes(DietaryFilter.VEGANO) && hasAny(veganTerms)) {
-    return true;
+  if (dietaryFilters.includes(DietaryFilter.VEGANO)) {
+    const hasForbiddenVegan = normalized.some(ingredient => {
+      if (hasSafeVeganMarker(ingredient)) return false;
+
+      if (
+        ingredient.includes("leite de coco") ||
+        ingredient.includes("leite de amêndoas") ||
+        ingredient.includes("leite de amendoas") ||
+        ingredient.includes("leite de aveia") ||
+        ingredient.includes("leite vegetal") ||
+        ingredient.includes("queijo vegano") ||
+        ingredient.includes("melado")
+      ) {
+        return false;
+      }
+
+      return hasAnyTerm(ingredient, veganTerms);
+    });
+    if (hasForbiddenVegan) return true;
   }
 
-  if (dietaryFilters.includes(DietaryFilter.SEM_ACUCAR) && hasAny(sugarTerms)) {
-    return true;
+  if (dietaryFilters.includes(DietaryFilter.SEM_ACUCAR)) {
+    const hasForbiddenSugar = normalized.some(ingredient => {
+      if (hasSafeSugarFreeMarker(ingredient)) return false;
+      return hasAnyTerm(ingredient, sugarTerms);
+    });
+    if (hasForbiddenSugar) return true;
   }
 
   return false;
@@ -211,7 +280,73 @@ A estimativa deve:
     recipeData.tempId = Math.random().toString(36).substring(7);
 
     if (containsForbiddenIngredients(recipeData.ingredients, prefs.dietaryFilters)) {
-      throw new Error("A receita gerada contém ingrediente incompatível com as restrições selecionadas.");
+      console.warn("[Gemini] Receita incompatível na primeira tentativa. Tentando gerar novamente...");
+
+      const retryResponse = await withRetry(() =>
+        ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: `${prompt}
+
+ATENÇÃO EXTRA:
+A receita anterior continha ingrediente incompatível com as restrições selecionadas.
+Refaça a receita respeitando rigorosamente todas as restrições alimentares.
+Não use ingredientes proibidos nem versões comuns de ingredientes restritos.`,
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                description: { type: Type.STRING },
+                ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+                instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                estimatedCost: { type: Type.STRING },
+                estimatedTime: { type: Type.STRING },
+                macros: {
+                  type: Type.OBJECT,
+                  properties: {
+                    protein: { type: Type.STRING },
+                    carbs: { type: Type.STRING },
+                    fats: { type: Type.STRING },
+                    calories: { type: Type.STRING },
+                  },
+                  required: ["protein", "carbs", "fats", "calories"]
+                }
+              },
+              required: [
+                "title",
+                "description",
+                "ingredients",
+                "instructions",
+                "macros",
+                "estimatedTime",
+                "estimatedCost"
+              ]
+            },
+          },
+        })
+      );
+
+      if (!retryResponse.text) {
+        throw new Error("Resposta vazia do modelo na segunda tentativa.");
+      }
+
+      const retryRecipeData = JSON.parse(retryResponse.text) as RecipeResult;
+      retryRecipeData.tempId = Math.random().toString(36).substring(7);
+
+      if (containsForbiddenIngredients(retryRecipeData.ingredients, prefs.dietaryFilters)) {
+        throw new Error("A receita gerada contém ingrediente incompatível com as restrições selecionadas.");
+      }
+
+      recipeData.title = retryRecipeData.title;
+      recipeData.description = retryRecipeData.description;
+      recipeData.ingredients = retryRecipeData.ingredients;
+      recipeData.instructions = retryRecipeData.instructions;
+      recipeData.estimatedCost = retryRecipeData.estimatedCost;
+      recipeData.estimatedTime = retryRecipeData.estimatedTime;
+      recipeData.macros = retryRecipeData.macros;
+      recipeData.tempId = retryRecipeData.tempId;
     }
 
     console.log(`[Gemini] Receita gerada: "${recipeData.title}" (tempId: ${recipeData.tempId})`);
