@@ -134,6 +134,7 @@ REGRAS DE SEGURANÇA ALIMENTAR:
   const prompt = `Gere uma receita FIT personalizada:
 - Para ${prefs.peopleCount} pessoa(s).
 - Momento: ${prefs.mealType} ${prefs.dishType ? `(Estilo desejado: ${prefs.dishType})` : ''}
+- Forma de Cozimento: ${prefs.cookingMethod}
 - Perfil Dietético: ${dietProfile}
 - Meta Calórica: ${prefs.calorieLevel}
 - Sabor Principal: ${prefs.flavor}
