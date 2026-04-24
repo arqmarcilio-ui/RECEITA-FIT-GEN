@@ -14,7 +14,6 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
   const t = translations[language];
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<UserPreferences>(initialData);
-  const [showDishInput, setShowDishInput] = useState(initialData.dishType !== '');
   const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false);
   const [showCustomPeopleInput, setShowCustomPeopleInput] = useState(false);
   const [customPeopleValue, setCustomPeopleValue] = useState('');
@@ -42,27 +41,35 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
 
       if (f === DietaryFilter.SEM_RESTRICAO) {
         return { ...p, dietaryFilters: [f] };
-      } else {
-        newList = newList.filter(x => x !== DietaryFilter.SEM_RESTRICAO);
-        if (newList.includes(f)) {
-          newList = newList.filter(x => x !== f);
-        } else {
-          newList.push(f);
-        }
-        if (newList.length === 0) newList = [DietaryFilter.SEM_RESTRICAO];
-        return { ...p, dietaryFilters: newList };
       }
+
+      newList = newList.filter(x => x !== DietaryFilter.SEM_RESTRICAO);
+
+      if (newList.includes(f)) {
+        newList = newList.filter(x => x !== f);
+      } else {
+        newList.push(f);
+      }
+
+      if (newList.length === 0) newList = [DietaryFilter.SEM_RESTRICAO];
+
+      return { ...p, dietaryFilters: newList };
     });
   };
 
-const selectMealType = (m: MealType) => {
-  setFormData({ ...formData, mealType: m, dishType: '' });
-};
+  const selectMealType = (m: MealType) => {
+    setFormData({
+      ...formData,
+      mealType: m,
+      dishType: m === MealType.PRATO_ESPECIFICO ? formData.dishType : ''
+    });
+  };
 
   const otherFilters = Object.values(DietaryFilter).filter(f => f !== DietaryFilter.SEM_RESTRICAO);
 
   const StepHeader = () => {
     const progress = Math.round((step / totalSteps) * 100);
+
     return (
       <div className="px-8 pt-8 pb-4 space-y-1">
         <div className="flex justify-between items-end">
@@ -78,6 +85,7 @@ const selectMealType = (m: MealType) => {
             {progress}%
           </div>
         </div>
+
         <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
@@ -104,9 +112,14 @@ const selectMealType = (m: MealType) => {
               className="space-y-8"
             >
               <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.profileQuestion}</h3>
-                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">{t.profileSub}</p>
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                  {t.profileQuestion}
+                </h3>
+                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                  {t.profileSub}
+                </p>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 {otherFilters.map(f => (
                   <button
@@ -121,6 +134,7 @@ const selectMealType = (m: MealType) => {
                     {(t.dietaryFilters as any)[f]}
                   </button>
                 ))}
+
                 <button
                   onClick={() => toggleDietary(DietaryFilter.SEM_RESTRICAO)}
                   className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
@@ -144,7 +158,9 @@ const selectMealType = (m: MealType) => {
               className="space-y-8"
             >
               <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.mealMoment}</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                  {t.mealMoment}
+                </h3>
               </div>
 
               <div className="space-y-4">
@@ -164,6 +180,23 @@ const selectMealType = (m: MealType) => {
                   ))}
                 </div>
 
+                {formData.mealType === MealType.PRATO_ESPECIFICO && (
+                  <div className="space-y-2 pt-2">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                      {t.specificDish}
+                    </p>
+
+                    <input
+                      placeholder={t.dishPlaceholder}
+                      className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
+                      value={formData.dishType}
+                      onChange={(e) =>
+                        setFormData({ ...formData, dishType: e.target.value })
+                      }
+                    />
+                  </div>
+                )}
+
                 <div className="space-y-3 pt-3">
                   <h3 className="text-xl font-black text-slate-900 uppercase leading-none tracking-tight">
                     FORMA DE COZIMENTO
@@ -171,12 +204,12 @@ const selectMealType = (m: MealType) => {
 
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      "Airfryer",
-                      "Fogão",
-                      "Forno",
-                      "Micro-ondas",
-                      "Sem cozimento",
-                      "Não definido"
+                      'Airfryer',
+                      'Fogão',
+                      'Forno',
+                      'Micro-ondas',
+                      'Sem cozimento',
+                      'Não definido'
                     ].map((item) => (
                       <button
                         key={item}
@@ -192,23 +225,6 @@ const selectMealType = (m: MealType) => {
                     ))}
                   </div>
                 </div>
-
-            {formData.mealType === MealType.PRATO_ESPECIFICO && (
-  <div className="space-y-2 pt-2">
-    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">
-      {t.specificDish}
-    </p>
-
-    <input
-      placeholder={t.dishPlaceholder}
-      className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
-      value={formData.dishType}
-      onChange={(e) =>
-        setFormData({ ...formData, dishType: e.target.value })
-      }
-    />
-  </div>
-)}
               </div>
             </motion.div>
           )}
@@ -222,12 +238,16 @@ const selectMealType = (m: MealType) => {
               className="space-y-8"
             >
               <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.portions}</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                  {t.portions}
+                </h3>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.people}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                    {t.people}
+                  </p>
 
                   <div className="flex gap-2">
                     {[1, 2, 3, 4].map((num) => (
@@ -283,7 +303,10 @@ const selectMealType = (m: MealType) => {
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.calories}</h3>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                    {t.calories}
+                  </h3>
+
                   <div className="grid grid-cols-2 gap-2">
                     {Object.values(CalorieLevel).map(c => (
                       <button
@@ -313,7 +336,10 @@ const selectMealType = (m: MealType) => {
               className="space-y-8"
             >
               <div className="space-y-4">
-                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.flavorOption}</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                  {t.flavorOption}
+                </h3>
+
                 <div className="grid grid-cols-1 gap-2">
                   {Object.values(Flavor).map(f => (
                     <button
@@ -332,7 +358,10 @@ const selectMealType = (m: MealType) => {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.preparation}</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                  {t.preparation}
+                </h3>
+
                 <div className="grid grid-cols-1 gap-2">
                   {Object.values(SkillLevel).map(s => (
                     <button
@@ -363,7 +392,10 @@ const selectMealType = (m: MealType) => {
             >
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.availableIngredients}</h3>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                    {t.availableIngredients}
+                  </h3>
+
                   <textarea
                     rows={2}
                     placeholder={t.ingredientsPlaceholder}
@@ -374,7 +406,10 @@ const selectMealType = (m: MealType) => {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{t.avoidIngredients}</h3>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                    {t.avoidIngredients}
+                  </h3>
+
                   <textarea
                     rows={2}
                     placeholder={t.avoidPlaceholder}
