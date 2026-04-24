@@ -66,7 +66,10 @@ const isSpecificDishSelected = () => showDishInput;
     });
   };
 
-const selectMealType = (m: MealType, index: number) => {
+const selectMealType = (m: MealType) => {
+  setFormData({ ...formData, mealType: m, dishType: '' });
+  setShowDishInput(m === MealType.PRATO_ESPECIFICO);
+};
   const isSpecificDish = index === Object.values(MealType).length - 1;
 
   setFormData({ ...formData, mealType: m, dishType: '' });
@@ -172,10 +175,10 @@ const selectMealType = (m: MealType, index: number) => {
               </div>
            <div className="space-y-4">
   <div className="grid grid-cols-2 gap-2">
-    {Object.values(MealType).map((m, index) => (
+    {Object.values(MealType).map(m => (
   <button 
     key={m} 
-    onClick={() => selectMealType(m, index)}
+   onClick={() => selectMealType(m)}
         className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
           formData.mealType === m 
             ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
