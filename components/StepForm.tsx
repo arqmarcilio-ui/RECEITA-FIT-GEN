@@ -66,10 +66,14 @@ const totalSteps = 5;
     });
   };
 
-  const selectMealType = (m: MealType) => {
-    setFormData({ ...formData, mealType: m, dishType: '' });
-    setShowDishInput(m === MealType.PRATO_ESPECIFICO);
-  };
+ const selectMealType = (m: MealType) => {
+  const isSpecificDish =
+    String(m).toLowerCase().includes('prato') ||
+    String((t.mealTypes as any)[m]).toLowerCase().includes('prato');
+
+  setFormData({ ...formData, mealType: m, dishType: '' });
+  setShowDishInput(isSpecificDish);
+};
 
   const toggleSpecificDish = () => {
     const isNowVisible = !showDishInput;
