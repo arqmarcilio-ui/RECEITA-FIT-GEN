@@ -223,6 +223,15 @@ REGRAS DE PREPARO:
 - Se escolher Não definido, escolha o método mais adequado.
 - Nunca utilize método diferente do selecionado.
 
+REGRAS DE FORMATO:
+- A descrição deve ter no máximo 8 palavras.
+- Os macronutrientes devem ser curtos.
+- calories deve vir apenas no formato "350-400 kcal".
+- protein deve vir apenas no formato "10-12g".
+- carbs deve vir apenas no formato "35-40g".
+- fats deve vir apenas no formato "18-22g".
+- Nunca use palavras como "aproximadamente", "por porção", "cerca de" ou frases nos macronutrientes.
+
 Inclua também uma estimativa de custo total dos ingredientes no Brasil.
 A estimativa deve:
 - considerar todos os ingredientes da receita
