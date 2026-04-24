@@ -66,19 +66,8 @@ const isSpecificDishSelected = () => showDishInput;
     });
   };
 
- const selectMealType = (m: MealType) => {
-  const mealLabel = String((t.mealTypes as any)[m] || '').toLowerCase();
-  const mealValue = String(m || '').toLowerCase();
-
-  const isSpecificDish =
-    mealLabel.includes('prato') ||
-    mealLabel.includes('específico') ||
-    mealLabel.includes('especifico') ||
-    mealLabel.includes('specific') ||
-    mealValue.includes('prato') ||
-    mealValue.includes('especifico') ||
-    mealValue.includes('specific') ||
-    mealValue.includes('custom');
+const selectMealType = (m: MealType, index: number) => {
+  const isSpecificDish = index === Object.values(MealType).length - 1;
 
   setFormData({ ...formData, mealType: m, dishType: '' });
   setShowDishInput(isSpecificDish);
@@ -183,10 +172,10 @@ const isSpecificDishSelected = () => showDishInput;
               </div>
            <div className="space-y-4">
   <div className="grid grid-cols-2 gap-2">
-    {Object.values(MealType).map(m => (
-      <button 
-        key={m} 
-        onClick={() => selectMealType(m)}
+    {Object.values(MealType).map((m, index) => (
+  <button 
+    key={m} 
+    onClick={() => selectMealType(m, index)}
         className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
           formData.mealType === m 
             ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500' 
