@@ -21,7 +21,7 @@ export const translations = {
     noResults: 'Nenhuma receita encontrada.',
     noPublicHistory: 'Nenhuma receita pública disponível.',
     appName: 'Receita Fit Gen',
-    appSubtitle: 'Smart Nutricion AI',
+    appSubtitle: 'Smart Nutrition AI',
     version: 'VERSÃO',
     poweredBy: 'Powered by Google Gemini 3',
     step: 'Etapa',
