@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         model: "gpt-image-1",
         prompt: imagePrompt,
         size: "1024x1024",
-        quality: "medium" // 🔥 melhora tempo de geração
+        quality: "low" // 🔥 melhora tempo de geração
       })
     );
 
