@@ -30,7 +30,17 @@ const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false);
 const [showCustomPeopleInput, setShowCustomPeopleInput] = useState(false);
 const [customPeopleValue, setCustomPeopleValue] = useState('');
 const totalSteps = 5;
+const isSpecificDishSelected = () => {
+  return showDishInput;
+};
 
+  return (
+    selectedLabel.includes('prato') ||
+    selectedLabel.includes('specific') ||
+    selectedLabel.includes('específico') ||
+    selectedLabel.includes('especifico')
+  );
+};
   const handleNext = () => {
     if (step < totalSteps) {
       setStep(step + 1);
@@ -67,9 +77,18 @@ const totalSteps = 5;
   };
 
  const selectMealType = (m: MealType) => {
+  const mealLabel = String((t.mealTypes as any)[m] || '').toLowerCase();
+  const mealValue = String(m || '').toLowerCase();
+
   const isSpecificDish =
-    String(m).toLowerCase().includes('prato') ||
-    String((t.mealTypes as any)[m]).toLowerCase().includes('prato');
+    mealLabel.includes('prato') ||
+    mealLabel.includes('específico') ||
+    mealLabel.includes('especifico') ||
+    mealLabel.includes('specific') ||
+    mealValue.includes('prato') ||
+    mealValue.includes('especifico') ||
+    mealValue.includes('specific') ||
+    mealValue.includes('custom');
 
   setFormData({ ...formData, mealType: m, dishType: '' });
   setShowDishInput(isSpecificDish);
@@ -218,7 +237,7 @@ const totalSteps = 5;
     </div>
   </div>
 
-  {showDishInput && (
+{isSpecificDishSelected() && (
     <div className="space-y-2 pt-2">
       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.specificDish}</p>
       <input 
