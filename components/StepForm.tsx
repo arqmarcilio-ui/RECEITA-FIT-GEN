@@ -55,11 +55,9 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
     });
   };
 
-  const selectMealType = (m: MealType) => {
+const selectMealType = (m: MealType) => {
   setFormData({ ...formData, mealType: m, dishType: '' });
 };
-    setShowDishInput(m === MealType.PRATO_ESPECIFICO);
-  };
 
   const otherFilters = Object.values(DietaryFilter).filter(f => f !== DietaryFilter.SEM_RESTRICAO);
 
