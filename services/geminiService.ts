@@ -211,7 +211,7 @@ REGRAS DE SEGURANÇA ALIMENTAR:
 - Ingredientes para usar: ${prefs.ingredients || 'Os melhores disponíveis'}
 - Ingredientes para EVITAR: ${prefs.dispensableIngredients || 'Nenhum'}
 
-Forneça uma descrição apetitosa e instruções passo a passo claras.
+Forneça uma descrição apetitosa de no máximo 50 palavras e instruções passo a passo claras.
 
 REGRAS DE PREPARO:
 - Respeite obrigatoriamente a forma de cozimento escolhida.
