@@ -229,7 +229,7 @@ Gerado por Receita Fit Gen`;
             <h1 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tighter">
               {recipe.title}
             </h1>
-            <p className="text-slate-400 font-bold text-sm uppercase tracking-tight leading-relaxed">
+            <p className="text-slate-400 font-semibold text-sm tracking-tight leading-relaxed">
               {recipe.description}
             </p>
             {recipe.estimatedCost && (
