@@ -349,7 +349,7 @@ Gerado por Receita Fit Gen`;
             onClick={handleWhatsAppShare}
             className="flex-1 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl active:scale-95 transition-all flex items-center justify-center"
           >
-            Whatsapp
+           {showShoppingList ? 'Enviar Lista por WhatsApp' : 'Enviar Receita por WhatsApp'}
           </button>
         </div>
       </div>
