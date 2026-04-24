@@ -30,17 +30,7 @@ const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false);
 const [showCustomPeopleInput, setShowCustomPeopleInput] = useState(false);
 const [customPeopleValue, setCustomPeopleValue] = useState('');
 const totalSteps = 5;
-const isSpecificDishSelected = () => {
-  return showDishInput;
-};
-
-  return (
-    selectedLabel.includes('prato') ||
-    selectedLabel.includes('specific') ||
-    selectedLabel.includes('específico') ||
-    selectedLabel.includes('especifico')
-  );
-};
+const isSpecificDishSelected = () => showDishInput;
   const handleNext = () => {
     if (step < totalSteps) {
       setStep(step + 1);
