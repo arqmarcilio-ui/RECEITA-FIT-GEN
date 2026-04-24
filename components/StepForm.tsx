@@ -195,7 +195,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   </div>
                 </div>
 
-              {formData.mealType === MealType.PRATO_ESPECIFICO && (
+            {formData.mealType === MealType.PRATO_ESPECIFICO && (
                   <div className="space-y-2 pt-2">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{t.specificDish}</p>
                     <input
