@@ -237,6 +237,10 @@ Gerado por Receita Fit Gen`;
                 💰 Custo estimado: {recipe.estimatedCost}
               </p>
             )}
+
+            <p className="text-sky-500 font-bold text-sm uppercase tracking-tight leading-relaxed">
+  🍽️ Porções: {recipe.peopleCount || 1}
+</p>
           </div>
         </div>
 
