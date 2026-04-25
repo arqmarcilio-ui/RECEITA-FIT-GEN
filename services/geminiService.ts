@@ -344,6 +344,8 @@ Não use ingredientes proibidos nem versões comuns de ingredientes restritos.`,
       }
 
       const retryRecipeData = JSON.parse(retryResponse.text) as RecipeResult;
+(retryRecipeData as any).peopleCount = prefs.peopleCount;
+      
       retryRecipeData.tempId = Math.random().toString(36).substring(7);
 
       if (containsForbiddenIngredients(retryRecipeData.ingredients, prefs.dietaryFilters)) {
