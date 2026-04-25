@@ -50,7 +50,8 @@ function containsForbiddenIngredients(ingredients: string[], dietaryFilters: Die
     ingredient.includes("lactose-free") ||
     ingredient.includes("lacfree") ||
     ingredient.includes("sem leite") ||
-    ingredient.includes("vegetal");
+    ingredient.includes("vegetal") ||
+    ingredient.includes("bebida vegetal");
 
   const hasSafeSugarFreeMarker = (ingredient: string) =>
     ingredient.includes("sem açúcar") ||
@@ -123,58 +124,55 @@ function containsForbiddenIngredients(ingredients: string[], dietaryFilters: Die
     "xarope de acucar"
   ];
 
+  const isPlantBasedMilk = (ingredient: string) =>
+    ingredient.includes("leite de ") &&
+    !ingredient.includes("leite de vaca");
+
   if (dietaryFilters.includes(DietaryFilter.SEM_GLUTEN)) {
     const hasForbiddenGluten = normalized.some(ingredient => {
       if (hasSafeGlutenFreeMarker(ingredient)) return false;
       return hasAnyTerm(ingredient, glutenTerms);
     });
+
     if (hasForbiddenGluten) return true;
   }
 
- if (dietaryFilters.includes(DietaryFilter.SEM_LACTOSE)) {
-  const hasForbiddenLactose = normalized.some(ingredient => {
-    if (hasSafeLactoseFreeMarker(ingredient)) return false;
+  if (dietaryFilters.includes(DietaryFilter.SEM_LACTOSE)) {
+    const hasForbiddenLactose = normalized.some(ingredient => {
+      if (hasSafeLactoseFreeMarker(ingredient)) return false;
+      if (isPlantBasedMilk(ingredient)) return false;
 
-    const isPlantBasedMilk =
-      ingredient.includes("leite de ") &&
-      (
-        ingredient.includes("coco") ||
-        ingredient.includes("amêndoa") ||
-        ingredient.includes("amendoa") ||
-        ingredient.includes("castanha") ||
-        ingredient.includes("soja") ||
-        ingredient.includes("arroz") ||
-        ingredient.includes("aveia") ||
-        ingredient.includes("ervilha") ||
-        ingredient.includes("amendoim") ||
-        ingredient.includes("quinoa") ||
-        ingredient.includes("gergelim") ||
-        ingredient.includes("girassol") ||
-        ingredient.includes("nozes") ||
-        ingredient.includes("avelã") ||
-        ingredient.includes("avela") ||
-        ingredient.includes("macadâmia") ||
-        ingredient.includes("macadamia")
-      );
+      if (
+        ingredient.includes("leite vegetal") ||
+        ingredient.includes("bebida vegetal") ||
+        ingredient.includes("queijo vegano")
+      ) {
+        return false;
+      }
 
-    if (isPlantBasedMilk) return false;
+      return hasAnyTerm(ingredient, lactoseTerms);
+    });
 
-    if (
-      ingredient.includes("leite vegetal") ||
-      ingredient.includes("bebida vegetal") ||
-      ingredient.includes("queijo vegano")
-    ) {
-      return false;
-    }
+    if (hasForbiddenLactose) return true;
+  }
 
-    return hasAnyTerm(ingredient, lactoseTerms);
-  });
+  if (dietaryFilters.includes(DietaryFilter.VEGANO)) {
+    const hasForbiddenVegan = normalized.some(ingredient => {
+      if (hasSafeVeganMarker(ingredient)) return false;
+      if (isPlantBasedMilk(ingredient)) return false;
 
-  if (hasForbiddenLactose) return true;
-}
+      if (
+        ingredient.includes("leite vegetal") ||
+        ingredient.includes("bebida vegetal") ||
+        ingredient.includes("queijo vegano") ||
+        ingredient.includes("melado")
+      ) {
+        return false;
+      }
 
       return hasAnyTerm(ingredient, veganTerms);
     });
+
     if (hasForbiddenVegan) return true;
   }
 
@@ -183,6 +181,7 @@ function containsForbiddenIngredients(ingredients: string[], dietaryFilters: Die
       if (hasSafeSugarFreeMarker(ingredient)) return false;
       return hasAnyTerm(ingredient, sugarTerms);
     });
+
     if (hasForbiddenSugar) return true;
   }
 
@@ -211,8 +210,8 @@ REGRAS CRÍTICAS:
 
 REGRAS DE SEGURANÇA ALIMENTAR:
 - Se o usuário selecionar "Sem Glúten", proíba trigo, centeio, cevada, malte e derivados. Em caso de dúvida, não use o ingrediente.
-- Se o usuário selecionar "Sem Lactose", proíba leite, queijo comum, iogurte comum, creme de leite comum, manteiga comum e derivados lácteos comuns. Em caso de dúvida, não use o ingrediente.
-- Se o usuário selecionar "Vegano", proíba carnes, peixes, ovos, leite, queijo, manteiga, mel e qualquer derivado animal.
+- Se o usuário selecionar "Sem Lactose", proíba leite de vaca, queijo comum, iogurte comum, creme de leite comum, manteiga comum e derivados lácteos comuns. Bebidas vegetais são permitidas.
+- Se o usuário selecionar "Vegano", proíba carnes, peixes, ovos, leite de origem animal, queijo comum, manteiga, mel e qualquer derivado animal.
 - Se o usuário selecionar "Sem Açúcar", proíba açúcar comum e ingredientes claramente açucarados.
 - Em caso de qualquer conflito entre sabor e segurança alimentar, a segurança alimentar tem prioridade absoluta.
 - Nunca sugira substituições duvidosas para alergias/restrições severas sem deixar claro que são apenas sugestões culinárias.
@@ -305,7 +304,7 @@ A estimativa deve:
 
     const recipeData = JSON.parse(response.text) as RecipeResult;
     (recipeData as any).peopleCount = prefs.peopleCount;
-    
+
     recipeData.tempId = Math.random().toString(36).substring(7);
 
     if (containsForbiddenIngredients(recipeData.ingredients, prefs.dietaryFilters)) {
@@ -319,7 +318,9 @@ A estimativa deve:
 ATENÇÃO EXTRA:
 A receita anterior continha ingrediente incompatível com as restrições selecionadas.
 Refaça a receita respeitando rigorosamente todas as restrições alimentares.
-Não use ingredientes proibidos nem versões comuns de ingredientes restritos.`,
+Não use ingredientes proibidos nem versões comuns de ingredientes restritos.
+Para sem lactose, bebidas vegetais são permitidas.
+Para vegano, bebidas vegetais são permitidas.`,
           config: {
             systemInstruction,
             responseMimeType: "application/json",
@@ -362,8 +363,8 @@ Não use ingredientes proibidos nem versões comuns de ingredientes restritos.`,
       }
 
       const retryRecipeData = JSON.parse(retryResponse.text) as RecipeResult;
-(retryRecipeData as any).peopleCount = prefs.peopleCount;
-      
+      (retryRecipeData as any).peopleCount = prefs.peopleCount;
+
       retryRecipeData.tempId = Math.random().toString(36).substring(7);
 
       if (containsForbiddenIngredients(retryRecipeData.ingredients, prefs.dietaryFilters)) {
@@ -423,6 +424,7 @@ Não use ingredientes proibidos nem versões comuns de ingredientes restritos.`,
       } else {
         console.error(`[Image API] erro:`, e);
       }
+
       recipeData.imageUrl = '';
     }
 
