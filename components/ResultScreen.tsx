@@ -290,7 +290,7 @@ Gerado por Receita Fit Gen`;
                   {recipe.ingredients.map((ing, i) => (
                     <div key={i} className="flex items-center gap-4 p-5 bg-slate-100 rounded-3xl">
                       <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full flex-shrink-0" />
-                      <p className="text-sm font-bold text-slate-900 uppercase tracking-tight">{ing}</p>
+                      <p className="text-sm font-bold text-slate-900 tracking-tight">{ing}</p>
                     </div>
                   ))}
                 </div>
