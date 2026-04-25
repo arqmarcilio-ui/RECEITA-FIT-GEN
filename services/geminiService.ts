@@ -286,6 +286,8 @@ A estimativa deve:
     console.log(`[Gemini] Texto bruto da resposta:`, response.text);
 
     const recipeData = JSON.parse(response.text) as RecipeResult;
+    (recipeData as any).peopleCount = prefs.peopleCount;
+    
     recipeData.tempId = Math.random().toString(36).substring(7);
 
     if (containsForbiddenIngredients(recipeData.ingredients, prefs.dietaryFilters)) {
