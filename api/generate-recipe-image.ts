@@ -41,7 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const seed = Math.floor(Math.random() * 1000);
 
     // 🔥 Prompt otimizado (menos pesado = mais rápido)
-    const imagePrompt = `Realistic food photography of ${title}. ${description}. Ingredients: ${ingredients}. Natural lighting, appetizing, restaurant style presentation. No abstract or artistic styles. Style #${seed}`;
+   const imagePrompt = `Realistic food photo of ${title}. Main ingredients: ${ingredients}. Natural light, appetizing, restaurant plating. No text, no people. Style #${seed}`;
     
     console.log(`[OpenAI Prompt] ${imagePrompt}`);
 
