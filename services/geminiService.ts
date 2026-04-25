@@ -131,29 +131,47 @@ function containsForbiddenIngredients(ingredients: string[], dietaryFilters: Die
     if (hasForbiddenGluten) return true;
   }
 
-  if (dietaryFilters.includes(DietaryFilter.SEM_LACTOSE)) {
-    const hasForbiddenLactose = normalized.some(ingredient => {
-      if (hasSafeLactoseFreeMarker(ingredient)) return false;
-      return hasAnyTerm(ingredient, lactoseTerms);
-    });
-    if (hasForbiddenLactose) return true;
-  }
+ if (dietaryFilters.includes(DietaryFilter.SEM_LACTOSE)) {
+  const hasForbiddenLactose = normalized.some(ingredient => {
+    if (hasSafeLactoseFreeMarker(ingredient)) return false;
 
-  if (dietaryFilters.includes(DietaryFilter.VEGANO)) {
-    const hasForbiddenVegan = normalized.some(ingredient => {
-      if (hasSafeVeganMarker(ingredient)) return false;
+    const isPlantBasedMilk =
+      ingredient.includes("leite de ") &&
+      (
+        ingredient.includes("coco") ||
+        ingredient.includes("amêndoa") ||
+        ingredient.includes("amendoa") ||
+        ingredient.includes("castanha") ||
+        ingredient.includes("soja") ||
+        ingredient.includes("arroz") ||
+        ingredient.includes("aveia") ||
+        ingredient.includes("ervilha") ||
+        ingredient.includes("amendoim") ||
+        ingredient.includes("quinoa") ||
+        ingredient.includes("gergelim") ||
+        ingredient.includes("girassol") ||
+        ingredient.includes("nozes") ||
+        ingredient.includes("avelã") ||
+        ingredient.includes("avela") ||
+        ingredient.includes("macadâmia") ||
+        ingredient.includes("macadamia")
+      );
 
-      if (
-        ingredient.includes("leite de coco") ||
-        ingredient.includes("leite de amêndoas") ||
-        ingredient.includes("leite de amendoas") ||
-        ingredient.includes("leite de aveia") ||
-        ingredient.includes("leite vegetal") ||
-        ingredient.includes("queijo vegano") ||
-        ingredient.includes("melado")
-      ) {
-        return false;
-      }
+    if (isPlantBasedMilk) return false;
+
+    if (
+      ingredient.includes("leite vegetal") ||
+      ingredient.includes("bebida vegetal") ||
+      ingredient.includes("queijo vegano")
+    ) {
+      return false;
+    }
+
+    return hasAnyTerm(ingredient, lactoseTerms);
+  });
+
+  if (hasForbiddenLactose) return true;
+}
 
       return hasAnyTerm(ingredient, veganTerms);
     });
