@@ -306,7 +306,7 @@ Gerado por Receita Fit Gen`;
                     <div key={i} className="space-y-3">
                       <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest ml-1">{t.step} {i + 1}</p>
                       <div className="p-6 bg-slate-100 rounded-[2rem]">
-                        <p className="text-sm font-bold text-slate-900 leading-relaxed uppercase tracking-tight">{step}</p>
+                       <p className="text-sm font-bold text-slate-900 leading-relaxed tracking-tight">{step}</p>
                       </div>
                     </div>
                   ))}
