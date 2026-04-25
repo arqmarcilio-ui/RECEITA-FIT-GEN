@@ -211,7 +211,7 @@ REGRAS DE SEGURANÇA ALIMENTAR:
 - Ingredientes para usar: ${prefs.ingredients || 'Os melhores disponíveis'}
 - Ingredientes para EVITAR: ${prefs.dispensableIngredients || 'Nenhum'}
 
-Forneça uma descrição apetitosa de no máximo 50 palavras e instruções passo a passo claras.
+Forneça uma descrição apetitosa de no máximo 45 palavras e instruções passo a passo claras.
 
 REGRAS DE PREPARO:
 - Respeite obrigatoriamente a forma de cozimento escolhida.
@@ -224,7 +224,7 @@ REGRAS DE PREPARO:
 - Nunca utilize método diferente do selecionado.
 
 REGRAS DE FORMATO:
-- A descrição deve ter no máximo 8 palavras.
+- A descrição deve ter entre 30 e 40 palavras. Texto apetitoso e natural. Sem exageros publicitários.
 - Os macronutrientes devem ser curtos.
 - calories deve vir apenas no formato "350-400 kcal".
 - protein deve vir apenas no formato "10-12g".
