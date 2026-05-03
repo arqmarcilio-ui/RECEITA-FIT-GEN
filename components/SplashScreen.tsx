@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Language, translations } from '../translations';
-import { ChefHat, Heart, History, Sparkles } from 'lucide-react';
+import { ChefHat, History, Sparkles } from 'lucide-react';
 
 interface SplashScreenProps {
   onStart: () => void;
@@ -61,13 +61,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
           </button>
           
           <div className="flex flex-col gap-4">
-            <button 
-              onClick={onOpenFavorites}
-              className="flex items-center justify-center gap-2 py-5 bg-white border-2 border-slate-100 text-slate-900 rounded-3xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all"
-            >
-              <Heart className="w-4 h-4 text-rose-500" />
-              {t.favorites}
-            </button>
             <button 
               onClick={onOpenHistory}
               className="flex items-center justify-center gap-2 py-5 bg-white border-2 border-slate-100 text-slate-900 rounded-3xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all"
