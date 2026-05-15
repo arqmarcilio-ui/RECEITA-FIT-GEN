@@ -15,7 +15,8 @@ import LoginScreen from './components/LoginScreen';
 import { Language, translations } from './translations';
 import { LogOut, ShieldAlert, ChefHat, X } from 'lucide-react';
 import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp } from './firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, User, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 const App: React.FC = () => {
 const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist'>('splash');
@@ -119,16 +120,25 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
     await signOut(auth);
   };
 
-  const handleLogin = async () => {
-    setAuthError(null);
-    setAuthLoading(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Login error:", error);
-      setAuthLoading(false);
-    }
-  };
+ const handleLogin = async () => {
+  setAuthError(null);
+  setAuthLoading(true);
+
+  try {
+
+    const result = await FirebaseAuthentication.signInWithGoogle();
+
+    const credential = GoogleAuthProvider.credential(
+      result.credential?.idToken
+    );
+
+    await signInWithCredential(auth, credential);
+
+  } catch (error) {
+    console.error("Login error:", error);
+    setAuthLoading(false);
+  }
+};
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
