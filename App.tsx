@@ -15,8 +15,7 @@ import LoginScreen from './components/LoginScreen';
 import { Language, translations } from './translations';
 import { LogOut, ShieldAlert, ChefHat, X } from 'lucide-react';
 import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp } from './firebase';
-import { onAuthStateChanged, User, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
-import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 const App: React.FC = () => {
 const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist'>('splash');
@@ -125,13 +124,7 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
   setAuthLoading(true);
 
   try {
-    const result = await GoogleSignIn.signIn();
-
-    const credential = GoogleAuthProvider.credential(
-      result.authentication.idToken
-    );
-
-    await signInWithCredential(auth, credential);
+    await signInWithPopup(auth, googleProvider);
   } catch (error) {
     console.error("Login error:", error);
     setAuthLoading(false);
