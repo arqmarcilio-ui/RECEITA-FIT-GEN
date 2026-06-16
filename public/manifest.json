@@ -1,11 +1,15 @@
 {
   "name": "Receita Fit Gen",
   "short_name": "FitGen",
+  "description": "Gerador de Receitas Saudáveis e Fitness",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f8fafc",
   "theme_color": "#10b981",
-  "description": "Gerador de Receitas Saudáveis e Fitness",
+  "categories": ["health", "food", "fitness"],
   "icons": [
     {
       "src": "/icon-192.png",
