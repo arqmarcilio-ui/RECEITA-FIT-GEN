@@ -14,9 +14,10 @@ import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import { Language, translations } from './translations';
 import { LogOut, ShieldAlert, ChefHat, X } from 'lucide-react';
-import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp, getDoc, runTransaction } from './firebase';
+import { auth, db, googleProvider, signInWithPopup, signInWithRedirect, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp, getDoc, runTransaction } from './firebase';
 import { onAuthStateChanged, User, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in';
+import { Capacitor } from '@capacitor/core';
 
 const App: React.FC = () => {
 const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist'>('splash');
@@ -197,23 +198,52 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
     }
   };
 
- const handleLogin = async () => {
-  setAuthError(null);
-  setAuthLoading(true);
+  const handleLogin = async () => {
+    setAuthError(null);
+    setAuthLoading(true);
 
-  try {
-    const result = await GoogleSignIn.signIn();
-
-    const credential = GoogleAuthProvider.credential(
-      result.authentication.idToken
-    );
-
-    await signInWithCredential(auth, credential);
-  } catch (error) {
-    console.error("Login error:", error);
-    setAuthLoading(false);
-  }
-};
+    try {
+      if (Capacitor.isNativePlatform()) {
+        console.log("[Auth] Iniciando login nativo com Google via Capacitor...");
+        const result = await GoogleSignIn.signIn();
+        const credential = GoogleAuthProvider.credential(
+          result.authentication.idToken
+        );
+        await signInWithCredential(auth, credential);
+      } else {
+        console.log("[Auth] Iniciando login web com Google via signInWithPopup...");
+        try {
+          await signInWithPopup(auth, googleProvider);
+        } catch (popupError: any) {
+          console.warn("[Auth] signInWithPopup falhou, tentando fallback com signInWithRedirect...", popupError);
+          // Caso ocorra erro de popup bloqueado, fechado pelo usuário ou não suportado, tenta redirect
+          if (
+            popupError.code === 'auth/popup-blocked' ||
+            popupError.code === 'auth/popup-closed-by-user' ||
+            popupError.code === 'auth/operation-not-supported-in-this-environment'
+          ) {
+            await signInWithRedirect(auth, googleProvider);
+          } else {
+            throw popupError;
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error("[Auth] Erro no login Google:", error);
+      
+      let friendlyMessage = "Não foi possível abrir o login do Google. Tente novamente ou verifique se pop-ups estão bloqueados.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        friendlyMessage = "O login foi cancelado. Por favor, tente novamente.";
+      } else if (error.code === 'auth/network-request-failed') {
+        friendlyMessage = "Erro de conexão com a internet. Verifique sua rede e tente novamente.";
+      } else if (error.message) {
+        friendlyMessage = `Erro no login: ${error.message}`;
+      }
+      
+      setAuthError(friendlyMessage);
+      setAuthLoading(false);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
