@@ -17,7 +17,7 @@ service cloud.firestore {
     match /allowed_users/{email} {
       allow read: if isEmailOwner(email);
       
-      // Allow create if authenticated owner, using a valid, active and unused invite code
+      // Allow create if authenticated owner, using a valid, active and unused invite code (supports single_use and multi_use)
       allow create: if isAuthenticated() && 
                     isEmailOwner(email) &&
                     request.resource.data.active == true &&
@@ -26,10 +26,22 @@ service cloud.firestore {
                     request.resource.data.email.lower() == request.auth.token.email.lower() &&
                     request.resource.data.uid == request.auth.uid &&
                     request.resource.data.createdAt == request.time &&
-                    get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.used == false &&
                     get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.active == true &&
                     (get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.expiresAt == null || 
-                     get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.expiresAt > request.time);
+                     get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.expiresAt > request.time) &&
+                    (
+                      // Caso single_use (ou tipo nao definido/nulo)
+                      ((!('type' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
+                        get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.type != "multi_use") &&
+                       get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.used == false) ||
+                      // Caso multi_use
+                      (get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.type == "multi_use" &&
+                       get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.used == false &&
+                       (!('usedByEmails' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
+                        !(email.lower() in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.usedByEmails)) &&
+                       (!('usedByUids' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
+                        !(request.auth.uid in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.usedByUids)))
+                    );
       
       // Only admin can update or delete
       allow update, delete: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
@@ -40,17 +52,35 @@ service cloud.firestore {
       allow list: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
       allow get: if isAuthenticated();
       
-      // Allow update if marking it as used by the authenticated user
+      // Allow update if marking it as used by the authenticated user (supports single_use and multi_use)
       allow update: if isAuthenticated() &&
                     resource.data.used == false &&
-                    request.resource.data.used == true &&
-                    request.resource.data.usedByEmail.lower() == request.auth.token.email.lower() &&
-                    request.resource.data.usedByUid == request.auth.uid &&
-                    request.resource.data.usedAt == request.time &&
-                    request.resource.data.active == resource.data.active &&
-                    request.resource.data.plan == resource.data.plan &&
-                    request.resource.data.createdAt == resource.data.createdAt &&
-                    request.resource.data.expiresAt == resource.data.expiresAt;
+                    (
+                      // Caso single_use
+                      ((!('type' in resource.data) || resource.data.type != "multi_use") &&
+                       request.resource.data.used == true &&
+                       request.resource.data.usedByEmail.lower() == request.auth.token.email.lower() &&
+                       request.resource.data.usedByUid == request.auth.uid &&
+                       request.resource.data.usedAt == request.time &&
+                       request.resource.data.active == resource.data.active &&
+                       request.resource.data.plan == resource.data.plan &&
+                       request.resource.data.createdAt == resource.data.createdAt &&
+                       request.resource.data.expiresAt == resource.data.expiresAt) ||
+                      // Caso multi_use
+                      (resource.data.type == "multi_use" &&
+                       (!('usedByEmails' in resource.data) || !(request.auth.token.email.lower() in resource.data.usedByEmails)) &&
+                       (!('usedByUids' in resource.data) || !(request.auth.uid in resource.data.usedByUids)) &&
+                       request.resource.data.usedCount == resource.data.usedCount + 1 &&
+                       request.resource.data.lastUsedAt == request.time &&
+                       (request.resource.data.usedCount >= resource.data.maxUses ? request.resource.data.used == true : request.resource.data.used == false) &&
+                       request.resource.data.active == resource.data.active &&
+                       request.resource.data.plan == resource.data.plan &&
+                       request.resource.data.createdAt == resource.data.createdAt &&
+                       request.resource.data.expiresAt == resource.data.expiresAt &&
+                       request.resource.data.maxUses == resource.data.maxUses &&
+                       request.resource.data.type == resource.data.type
+                      )
+                    );
                     
       allow create, delete: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
     }

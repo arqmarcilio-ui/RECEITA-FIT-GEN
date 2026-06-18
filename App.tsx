@@ -158,7 +158,7 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
           throw new Error('Código de convite inativo.');
         }
         if (codeData.used === true) {
-          throw new Error('Este código de convite já foi utilizado.');
+          throw new Error('Este código de convite já atingiu o limite de usos.');
         }
         
         // Verificação de expiração
@@ -169,13 +169,44 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
           }
         }
 
-        // 1. Marca o código como usado pelo usuário atual
-        transaction.update(codeRef, {
-          used: true,
-          usedByEmail: user.email,
-          usedByUid: user.uid,
-          usedAt: serverTimestamp()
-        });
+        const isMultiUse = codeData.type === 'multi_use';
+
+        if (isMultiUse) {
+          const usedByEmails = codeData.usedByEmails || [];
+          const usedByUids = codeData.usedByUids || [];
+          const usedCount = codeData.usedCount || 0;
+          const maxUses = codeData.maxUses || 1;
+
+          if (usedByEmails.map((e: string) => e.toLowerCase()).includes(user.email.toLowerCase())) {
+            throw new Error('Você já ativou seu acesso com este código de convite.');
+          }
+          if (usedByUids.includes(user.uid)) {
+            throw new Error('Este usuário já utilizou este código.');
+          }
+          if (usedCount >= maxUses) {
+            throw new Error('Este código de convite reutilizável esgotou o limite de usos.');
+          }
+
+          const newUsedCount = usedCount + 1;
+          const willBeUsed = newUsedCount >= maxUses;
+
+          // 1. Atualiza o código reutilizável
+          transaction.update(codeRef, {
+            usedCount: newUsedCount,
+            used: willBeUsed,
+            usedByEmails: [...usedByEmails, user.email],
+            usedByUids: [...usedByUids, user.uid],
+            lastUsedAt: serverTimestamp()
+          });
+        } else {
+          // Lógica de uso único (single_use / padrão)
+          transaction.update(codeRef, {
+            used: true,
+            usedByEmail: user.email,
+            usedByUid: user.uid,
+            usedAt: serverTimestamp()
+          });
+        }
 
         // 2. Registra o usuário em allowed_users
         const allowedRef = doc(db, 'allowed_users', user.email);
