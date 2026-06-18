@@ -14,8 +14,9 @@ import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import { Language, translations } from './translations';
 import { LogOut, ShieldAlert, ChefHat, X } from 'lucide-react';
-import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp } from './firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth, db, googleProvider, signInWithPopup, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp, getDoc, runTransaction } from './firebase';
+import { onAuthStateChanged, User, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in';
 
 const App: React.FC = () => {
 const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist'>('splash');
@@ -48,6 +49,7 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
       if (!currentUser) {
         setIsAuthorized(false);
         setAuthLoading(false);
+        setAuthError(null);
         return;
       }
 
@@ -58,6 +60,7 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
         console.log(`[Auth] Acesso autorizado (Admin)`);
         setIsAuthorized(true);
         setAuthLoading(false);
+        setAuthError(null);
         return;
       }
 
@@ -82,9 +85,10 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
             console.log(`[Auth] Acesso autorizado`);
             setIsAuthorized(true);
             setAuthLoading(false);
+            setAuthError(null);
           } else {
             console.log(`[Auth] Acesso negado (active=false)`);
-            handleUnauthorized();
+            handleUnauthorized('Este e-mail está inativo no sistema.');
           }
         } else {
           console.log(`[Auth] Acesso negado (documento não existe)`);
@@ -103,7 +107,7 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
           path: `allowed_users/${email}`
         };
         console.error('Firestore Error: ', JSON.stringify(errInfo));
-        handleUnauthorized();
+        handleUnauthorized('Erro ao conectar ao servidor de autorizações.');
       });
 
       return () => unsubscribeDoc();
@@ -112,11 +116,85 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
     return () => unsubscribeAuth();
   }, []);
 
-  const handleUnauthorized = async () => {
+  const handleUnauthorized = (message?: string) => {
     setIsAuthorized(false);
     setAuthLoading(false);
-    setAuthError(t.unauthorizedEmail || 'Acesso não autorizado para este e-mail.');
-    await signOut(auth);
+    setAuthError(message || 'Acesso restrito. Insira seu código de convite para liberar.');
+  };
+
+  const handleLogout = async () => {
+    setAuthLoading(true);
+    try {
+      await signOut(auth);
+      setUser(null);
+      setIsAuthorized(false);
+      setAuthError(null);
+    } catch (e) {
+      console.error("Logout error:", e);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (code: string) => {
+    if (!user || !user.email) return;
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const dbCode = code.trim().toUpperCase();
+      const codeRef = doc(db, 'access_codes', dbCode);
+
+      // Usando transação do Firestore para garantir integridade atômica
+      await runTransaction(db, async (transaction) => {
+        const codeSnap = await transaction.get(codeRef);
+
+        if (!codeSnap.exists()) {
+          throw new Error('Código de convite não encontrado.');
+        }
+
+        const codeData = codeSnap.data();
+        if (codeData.active !== true) {
+          throw new Error('Código de convite inativo.');
+        }
+        if (codeData.used === true) {
+          throw new Error('Este código de convite já foi utilizado.');
+        }
+        
+        // Verificação de expiração
+        if (codeData.expiresAt) {
+          const expiresTime = codeData.expiresAt.toDate ? codeData.expiresAt.toDate().getTime() : new Date(codeData.expiresAt).getTime();
+          if (Date.now() > expiresTime) {
+            throw new Error('Este código de convite está expirado.');
+          }
+        }
+
+        // 1. Marca o código como usado pelo usuário atual
+        transaction.update(codeRef, {
+          used: true,
+          usedByEmail: user.email,
+          usedByUid: user.uid,
+          usedAt: serverTimestamp()
+        });
+
+        // 2. Registra o usuário em allowed_users
+        const allowedRef = doc(db, 'allowed_users', user.email);
+        transaction.set(allowedRef, {
+          email: user.email,
+          active: true,
+          createdAt: serverTimestamp(),
+          source: 'invite_code',
+          inviteCode: dbCode,
+          uid: user.uid,
+          plan: codeData.plan || 'basic'
+        });
+      });
+
+      console.log('[Auth] Código de convite validado e registrado com sucesso!');
+    } catch (e: any) {
+      console.error('[Auth] Erro ao validar convite:', e);
+      setAuthError(e.message || 'Código inválido ou erro de conexão.');
+      setAuthLoading(false);
+    }
   };
 
  const handleLogin = async () => {
@@ -124,7 +202,13 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
   setAuthLoading(true);
 
   try {
-    await signInWithPopup(auth, googleProvider);
+    const result = await GoogleSignIn.signIn();
+
+    const credential = GoogleAuthProvider.credential(
+      result.authentication.idToken
+    );
+
+    await signInWithCredential(auth, credential);
   } catch (error) {
     console.error("Login error:", error);
     setAuthLoading(false);
@@ -201,8 +285,31 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
     return <LoginScreen language={language} onLogin={handleLogin} error={null} isLoading={true} />;
   }
 
-  if (!user || !isAuthorized) {
-    return <LoginScreen language={language} onLogin={handleLogin} error={authError} isLoading={false} />;
+  if (!user) {
+    return (
+      <LoginScreen 
+        language={language} 
+        onLogin={handleLogin} 
+        error={authError} 
+        isLoading={false} 
+        showInviteCode={false} 
+      />
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <LoginScreen 
+        language={language} 
+        onLogin={handleLogin} 
+        error={authError} 
+        isLoading={false} 
+        showInviteCode={true} 
+        userEmail={user.email} 
+        onVerifyCode={handleVerifyCode} 
+        onCancel={handleLogout} 
+      />
+    );
   }
 
   return (

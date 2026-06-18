@@ -15,20 +15,49 @@ service cloud.firestore {
 
     // Allowed users collection
     match /allowed_users/{email} {
-      // Users can read their own authorization status
       allow read: if isEmailOwner(email);
       
-      // Only admins can create or update allowed users
-      // For now, we'll allow the first admin (the user who set up the app)
-      allow write: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
+      // Allow create if authenticated owner, using a valid, active and unused invite code
+      allow create: if isAuthenticated() && 
+                    isEmailOwner(email) &&
+                    request.resource.data.active == true &&
+                    request.resource.data.inviteCode != null &&
+                    request.resource.data.source == "invite_code" &&
+                    request.resource.data.email.lower() == request.auth.token.email.lower() &&
+                    request.resource.data.uid == request.auth.uid &&
+                    request.resource.data.createdAt == request.time &&
+                    get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.used == false &&
+                    get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.active == true &&
+                    (get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.expiresAt == null || 
+                     get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.expiresAt > request.time);
+      
+      // Only admin can update or delete
+      allow update, delete: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
+    }
+
+    // Access codes collection
+    match /access_codes/{code} {
+      allow list: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
+      allow get: if isAuthenticated();
+      
+      // Allow update if marking it as used by the authenticated user
+      allow update: if isAuthenticated() &&
+                    resource.data.used == false &&
+                    request.resource.data.used == true &&
+                    request.resource.data.usedByEmail.lower() == request.auth.token.email.lower() &&
+                    request.resource.data.usedByUid == request.auth.uid &&
+                    request.resource.data.usedAt == request.time &&
+                    request.resource.data.active == resource.data.active &&
+                    request.resource.data.plan == resource.data.plan &&
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    request.resource.data.expiresAt == resource.data.expiresAt;
+                    
+      allow create, delete: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
     }
 
     // Recipes collection
     match /recipes/{recipeId} {
-      // Allow public read for previews (WhatsApp, etc.)
       allow read: if true;
-      
-      // Only authenticated owners can write or delete
       allow write: if isAuthenticated() && 
                           (request.resource == null || request.resource.data.userId == request.auth.uid) &&
                           (resource == null || resource.data.userId == request.auth.uid);
@@ -36,13 +65,8 @@ service cloud.firestore {
 
     // Public Recipes collection
     match /public_recipes/{recipeId} {
-      // Allow public read for everyone
       allow read: if true;
-      
-      // Only authenticated users can create
       allow create: if isAuthenticated();
-      
-      // Only admins or authors can update/delete
       allow update, delete: if isAuthenticated() && 
                              (request.auth.token.email == "arqmarcilio@gmail.com" || (resource != null && resource.data.authorId == request.auth.uid));
     }
