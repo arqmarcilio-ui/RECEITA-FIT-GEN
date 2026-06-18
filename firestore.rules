@@ -13,6 +13,20 @@ service cloud.firestore {
              (request.auth.token.email.lower() == email.lower() || request.auth.token.email == "arqmarcilio@gmail.com");
     }
 
+    function isEmailArrayUpdated() {
+      let prev = 'usedByEmails' in resource.data ? resource.data.usedByEmails : [];
+      let next = 'usedByEmails' in request.resource.data ? request.resource.data.usedByEmails : [];
+      let email = request.auth.token.email.lower();
+      return next.hasAll(prev) && next.size() == prev.size() + 1 && (email in next);
+    }
+
+    function isUidArrayUpdated() {
+      let prev = 'usedByUids' in resource.data ? resource.data.usedByUids : [];
+      let next = 'usedByUids' in request.resource.data ? request.resource.data.usedByUids : [];
+      let uid = request.auth.uid;
+      return next.hasAll(prev) && next.size() == prev.size() + 1 && (uid in next);
+    }
+
     // Allowed users collection
     match /allowed_users/{email} {
       allow read: if isEmailOwner(email);
@@ -37,6 +51,8 @@ service cloud.firestore {
                       // Caso multi_use
                       (get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.type == "multi_use" &&
                        get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.used == false &&
+                       (!('usedCount' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
+                        get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.usedCount < get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.maxUses) &&
                        (!('usedByEmails' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
                         !(email.lower() in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.usedByEmails)) &&
                        (!('usedByUids' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
@@ -70,6 +86,8 @@ service cloud.firestore {
                       (resource.data.type == "multi_use" &&
                        (!('usedByEmails' in resource.data) || !(request.auth.token.email.lower() in resource.data.usedByEmails)) &&
                        (!('usedByUids' in resource.data) || !(request.auth.uid in resource.data.usedByUids)) &&
+                       isEmailArrayUpdated() &&
+                       isUidArrayUpdated() &&
                        request.resource.data.usedCount == resource.data.usedCount + 1 &&
                        request.resource.data.lastUsedAt == request.time &&
                        (request.resource.data.usedCount >= resource.data.maxUses ? request.resource.data.used == true : request.resource.data.used == false) &&

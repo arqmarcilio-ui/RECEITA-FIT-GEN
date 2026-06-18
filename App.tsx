@@ -194,7 +194,7 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
           transaction.update(codeRef, {
             usedCount: newUsedCount,
             used: willBeUsed,
-            usedByEmails: [...usedByEmails, user.email],
+            usedByEmails: [...usedByEmails, user.email.toLowerCase()],
             usedByUids: [...usedByUids, user.uid],
             lastUsedAt: serverTimestamp()
           });
