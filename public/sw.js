@@ -10,7 +10,6 @@ const STATIC_ASSETS = [
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
-
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
@@ -34,13 +33,10 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-
   if (request.method !== "GET") {
     return;
   }
-
   const url = new URL(request.url);
-
   if (url.origin !== self.location.origin) {
     return;
   }
@@ -50,18 +46,15 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((response) => {
           const responseClone = response.clone();
-
           caches.open(CACHE_NAME).then((cache) => {
             cache.put("/", responseClone);
           });
-
           return response;
         })
         .catch(() => {
           return caches.match("/") || caches.match("/index.html");
         })
     );
-
     return;
   }
 
@@ -69,11 +62,9 @@ self.addEventListener("fetch", (event) => {
     fetch(request)
       .then((response) => {
         const responseClone = response.clone();
-
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(request, responseClone);
         });
-
         return response;
       })
       .catch(() => {
