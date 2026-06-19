@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "br.com.receitafitgen.app",
+    "sha256_cert_fingerprints": ["DF:7A:08:C8:34:01:35:A0:55:6F:19:CB:AA:4B:58:8D:FC:36:54:81:7E:44:F0:0B:6B:4E:48:57:90:E7:16:B1"]
+  }
+}]
