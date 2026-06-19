@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -13,25 +12,11 @@ service cloud.firestore {
              (request.auth.token.email.lower() == email.lower() || request.auth.token.email == "arqmarcilio@gmail.com");
     }
 
-    function isEmailArrayUpdated() {
-      let prev = 'usedByEmails' in resource.data ? resource.data.usedByEmails : [];
-      let next = 'usedByEmails' in request.resource.data ? request.resource.data.usedByEmails : [];
-      let email = request.auth.token.email.lower();
-      return next.hasAll(prev) && next.size() == prev.size() + 1 && (email in next);
-    }
-
-    function isUidArrayUpdated() {
-      let prev = 'usedByUids' in resource.data ? resource.data.usedByUids : [];
-      let next = 'usedByUids' in request.resource.data ? request.resource.data.usedByUids : [];
-      let uid = request.auth.uid;
-      return next.hasAll(prev) && next.size() == prev.size() + 1 && (uid in next);
-    }
-
     // Allowed users collection
     match /allowed_users/{email} {
       allow read: if isEmailOwner(email);
       
-      // Allow create if authenticated owner, using a valid, active and unused invite code (supports single_use and multi_use)
+      // Allow create if authenticated owner, using a valid, active and unused/reusable invite code
       allow create: if isAuthenticated() && 
                     isEmailOwner(email) &&
                     request.resource.data.active == true &&
@@ -46,17 +31,10 @@ service cloud.firestore {
                     (
                       // Caso single_use (ou tipo nao definido/nulo)
                       ((!('type' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
-                        get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.type != "multi_use") &&
+                        get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.type != "test_reusable") &&
                        get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.used == false) ||
-                      // Caso multi_use
-                      (get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.type == "multi_use" &&
-                       get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.used == false &&
-                       (!('usedCount' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
-                        get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.usedCount < get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.maxUses) &&
-                       (!('usedByEmails' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
-                        !(email.lower() in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.usedByEmails)) &&
-                       (!('usedByUids' in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data) || 
-                        !(request.auth.uid in get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.usedByUids)))
+                      // Caso test_reusable
+                      (get(/databases/$(database)/documents/access_codes/$(request.resource.data.inviteCode)).data.type == "test_reusable")
                     );
       
       // Only admin can update or delete
@@ -68,37 +46,18 @@ service cloud.firestore {
       allow list: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
       allow get: if isAuthenticated();
       
-      // Allow update if marking it as used by the authenticated user (supports single_use and multi_use)
+      // Allow update if marking it as used by the authenticated user (only for single_use, test_reusable is read-only)
       allow update: if isAuthenticated() &&
+                    (!('type' in resource.data) || resource.data.type != "test_reusable") &&
                     resource.data.used == false &&
-                    (
-                      // Caso single_use
-                      ((!('type' in resource.data) || resource.data.type != "multi_use") &&
-                       request.resource.data.used == true &&
-                       request.resource.data.usedByEmail.lower() == request.auth.token.email.lower() &&
-                       request.resource.data.usedByUid == request.auth.uid &&
-                       request.resource.data.usedAt == request.time &&
-                       request.resource.data.active == resource.data.active &&
-                       request.resource.data.plan == resource.data.plan &&
-                       request.resource.data.createdAt == resource.data.createdAt &&
-                       request.resource.data.expiresAt == resource.data.expiresAt) ||
-                      // Caso multi_use
-                      (resource.data.type == "multi_use" &&
-                       (!('usedByEmails' in resource.data) || !(request.auth.token.email.lower() in resource.data.usedByEmails)) &&
-                       (!('usedByUids' in resource.data) || !(request.auth.uid in resource.data.usedByUids)) &&
-                       isEmailArrayUpdated() &&
-                       isUidArrayUpdated() &&
-                       request.resource.data.usedCount == resource.data.usedCount + 1 &&
-                       request.resource.data.lastUsedAt == request.time &&
-                       (request.resource.data.usedCount >= resource.data.maxUses ? request.resource.data.used == true : request.resource.data.used == false) &&
-                       request.resource.data.active == resource.data.active &&
-                       request.resource.data.plan == resource.data.plan &&
-                       request.resource.data.createdAt == resource.data.createdAt &&
-                       request.resource.data.expiresAt == resource.data.expiresAt &&
-                       request.resource.data.maxUses == resource.data.maxUses &&
-                       request.resource.data.type == resource.data.type
-                      )
-                    );
+                    request.resource.data.used == true &&
+                    request.resource.data.usedByEmail.lower() == request.auth.token.email.lower() &&
+                    request.resource.data.usedByUid == request.auth.uid &&
+                    request.resource.data.usedAt == request.time &&
+                    request.resource.data.active == resource.data.active &&
+                    request.resource.data.plan == resource.data.plan &&
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    request.resource.data.expiresAt == resource.data.expiresAt;
                     
       allow create, delete: if isAuthenticated() && request.auth.token.email == "arqmarcilio@gmail.com";
     }

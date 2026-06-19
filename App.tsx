@@ -157,10 +157,7 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
         if (codeData.active !== true) {
           throw new Error('Código de convite inativo.');
         }
-        if (codeData.used === true) {
-          throw new Error('Este código de convite já atingiu o limite de usos.');
-        }
-        
+
         // Verificação de expiração
         if (codeData.expiresAt) {
           const expiresTime = codeData.expiresAt.toDate ? codeData.expiresAt.toDate().getTime() : new Date(codeData.expiresAt).getTime();
@@ -169,56 +166,53 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
           }
         }
 
-        const isMultiUse = codeData.type === 'multi_use';
+        const isReusable = codeData.type === 'test_reusable';
 
-        if (isMultiUse) {
-          const usedByEmails = codeData.usedByEmails || [];
-          const usedByUids = codeData.usedByUids || [];
-          const usedCount = codeData.usedCount || 0;
-          const maxUses = codeData.maxUses || 1;
-
-          if (usedByEmails.map((e: string) => e.toLowerCase()).includes(user.email.toLowerCase())) {
+        if (isReusable) {
+          // Para test_reusable, não marcamos como usado nem escrevemos no código de convite.
+          // Apenas verificamos se o allowed_users já existe ativo para este e-mail
+          const allowedRef = doc(db, 'allowed_users', user.email);
+          const allowedSnap = await transaction.get(allowedRef);
+          if (allowedSnap.exists() && allowedSnap.data()?.active === true) {
             throw new Error('Você já ativou seu acesso com este código de convite.');
           }
-          if (usedByUids.includes(user.uid)) {
-            throw new Error('Este usuário já utilizou este código.');
-          }
-          if (usedCount >= maxUses) {
-            throw new Error('Este código de convite reutilizável esgotou o limite de usos.');
-          }
 
-          const newUsedCount = usedCount + 1;
-          const willBeUsed = newUsedCount >= maxUses;
-
-          // 1. Atualiza o código reutilizável
-          transaction.update(codeRef, {
-            usedCount: newUsedCount,
-            used: willBeUsed,
-            usedByEmails: [...usedByEmails, user.email.toLowerCase()],
-            usedByUids: [...usedByUids, user.uid],
-            lastUsedAt: serverTimestamp()
+          // Registra o usuário em allowed_users
+          transaction.set(allowedRef, {
+            email: user.email.toLowerCase(),
+            active: true,
+            createdAt: serverTimestamp(),
+            source: 'invite_code',
+            inviteCode: dbCode,
+            uid: user.uid,
+            plan: codeData.plan || 'basic'
           });
         } else {
           // Lógica de uso único (single_use / padrão)
+          if (codeData.used === true) {
+            throw new Error('Este código de convite já foi utilizado.');
+          }
+
+          // 1. Marca o código como usado pelo usuário atual
           transaction.update(codeRef, {
             used: true,
-            usedByEmail: user.email,
+            usedByEmail: user.email.toLowerCase(),
             usedByUid: user.uid,
             usedAt: serverTimestamp()
           });
-        }
 
-        // 2. Registra o usuário em allowed_users
-        const allowedRef = doc(db, 'allowed_users', user.email);
-        transaction.set(allowedRef, {
-          email: user.email,
-          active: true,
-          createdAt: serverTimestamp(),
-          source: 'invite_code',
-          inviteCode: dbCode,
-          uid: user.uid,
-          plan: codeData.plan || 'basic'
-        });
+          // 2. Registra o usuário em allowed_users
+          const allowedRef = doc(db, 'allowed_users', user.email);
+          transaction.set(allowedRef, {
+            email: user.email.toLowerCase(),
+            active: true,
+            createdAt: serverTimestamp(),
+            source: 'invite_code',
+            inviteCode: dbCode,
+            uid: user.uid,
+            plan: codeData.plan || 'basic'
+          });
+        }
       });
 
       console.log('[Auth] Código de convite validado e registrado com sucesso!');
