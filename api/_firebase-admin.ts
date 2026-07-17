@@ -1,5 +1,7 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getStorage } from 'firebase-admin/storage';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 
 export function getFirebaseAdmin() {
   if (getApps().length === 0) {
@@ -31,5 +33,7 @@ export function getFirebaseAdmin() {
 
   return {
     storage: getStorage(),
+    auth: getAuth(),
+    db: getFirestore()
   };
 }
