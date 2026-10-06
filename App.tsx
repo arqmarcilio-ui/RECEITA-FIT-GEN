@@ -12,6 +12,8 @@ import PublicHistoryList from './components/PublicHistoryList';
 import AdminHistoryList from './components/AdminHistoryList';
 import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import AccountDeletion from './components/AccountDeletion';
 import { Language, translations } from './translations';
 import { LogOut, ShieldAlert, ChefHat, X } from 'lucide-react';
 import { auth, db, googleProvider, signInWithPopup, signInWithRedirect, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp, getDoc, runTransaction } from './firebase';
@@ -20,7 +22,7 @@ import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in';
 import { Capacitor } from '@capacitor/core';
 
 const App: React.FC = () => {
-const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist'>('splash');
+  const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist' | 'privacy' | 'deletion'>('splash');
   const [language, setLanguage] = useState<Language>('pt');
   const t = translations[language];
  const [prefs, setPrefs] = useState<UserPreferences>({
@@ -335,6 +337,18 @@ const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'fav
       setView('form');
     }
   };
+
+  const pathname = window.location.pathname.toLowerCase();
+  const isPrivacyPolicyPage = pathname === '/politica-de-privacidade' || pathname === '/politica-de-privacidade/';
+  const isAccountDeletionPage = pathname === '/excluir-conta' || pathname === '/excluir-conta/';
+
+  if (isPrivacyPolicyPage || view === 'privacy') {
+    return <PrivacyPolicy onBack={() => { window.location.href = '/'; }} />;
+  }
+
+  if (isAccountDeletionPage || view === 'deletion') {
+    return <AccountDeletion onBack={() => { window.location.href = '/'; }} />;
+  }
 
   if (authLoading) {
     return <LoginScreen language={language} onLogin={handleLogin} error={null} isLoading={true} />;

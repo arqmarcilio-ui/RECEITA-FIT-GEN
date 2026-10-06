@@ -79,7 +79,16 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
         </div>
       </div>
       
-      <div className="absolute bottom-12 flex flex-col items-center gap-2">
+      <div className="absolute bottom-6 flex flex-col items-center gap-2 z-20">
+        <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <a href="/politica-de-privacidade" className="hover:text-emerald-600 transition-colors">
+            Privacidade
+          </a>
+          <span>•</span>
+          <a href="/excluir-conta" className="hover:text-emerald-600 transition-colors">
+            Excluir Conta
+          </a>
+        </div>
         <div className="text-slate-300 text-[9px] font-black uppercase tracking-[0.4em]">
           {t.poweredBy}
         </div>
