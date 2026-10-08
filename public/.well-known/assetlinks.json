@@ -1,8 +1,26 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "br.com.receitafitgen.app",
-    "sha256_cert_fingerprints": ["DF:7A:08:C8:34:01:35:A0:55:6F:19:CB:AA:4B:58:8D:FC:36:54:81:7E:44:F0:0B:6B:4E:48:57:90:E7:16:B1"]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.receita_fit_gen.twa",
+      "sha256_cert_fingerprints": [
+        "8C:C4:6A:22:54:9B:72:08:91:CD:12:AD:02:78:29:A4:DA:AF:15:9E:81:05:CA:66:1D:E1:5E:41:98:F0:5D:45"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.receitafitgen.app",
+      "sha256_cert_fingerprints": [
+        "DF:7A:08:C8:34:01:35:A0:55:6F:19:CB:AA:4B:58:8D:FC:36:54:81:7E:44:F0:0B:6B:4E:48:57:90:E7:16:B1"
+      ]
+    }
   }
-}]
+]
