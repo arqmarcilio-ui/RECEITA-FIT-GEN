@@ -62,6 +62,8 @@ export interface RecipeResult {
   estimatedTime: string;
   imageUrl?: string;
   tempId?: string;
+  publicDocId?: string;
+  imageError?: boolean;
   macros: {
     protein: string;
     carbs: string;

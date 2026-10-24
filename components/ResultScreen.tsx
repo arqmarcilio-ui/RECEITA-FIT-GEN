@@ -15,19 +15,19 @@ interface ResultScreenProps {
   recipe: RecipeResult;
   language: Language;
   onBack: () => void;
+  onUpdateImage?: (imageUrl: string) => void;
 }
 
-const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack }) => {
+const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack, onUpdateImage }) => {
   const t = translations[language];
   const [isFavorite, setIsFavorite] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
   const [checkedIngredients, setCheckedIngredients] = useState<string[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState<string>(recipe.imageUrl || '');
   const [imageState, setImageState] = useState<'loading' | 'error' | 'ready'>(
-    recipe.imageUrl ? 'ready' : 'loading'
+    recipe.imageUrl ? 'ready' : (recipe.imageError ? 'error' : 'loading')
   );
   const [isRetryingImage, setIsRetryingImage] = useState(false);
-  const autoRequestedRef = React.useRef<string | null>(null);
 
   useEffect(() => {
     const favsStr = localStorage.getItem('fit_gen_favs');
@@ -37,43 +37,23 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
     }
   }, [recipe.id, recipe.tempId]);
 
-  const updateLocalStorageImage = (newUrl: string) => {
-    try {
-      const keyId = recipe.id || recipe.tempId;
-      const histStr = localStorage.getItem('fit_gen_hist');
-      if (histStr) {
-        const hist = JSON.parse(histStr);
-        const updated = hist.map((item: RecipeResult) =>
-          (item.id === keyId || item.tempId === keyId)
-            ? { ...item, imageUrl: newUrl }
-            : item
-        );
-        localStorage.setItem('fit_gen_hist', JSON.stringify(updated));
-      }
-      const favsStr = localStorage.getItem('fit_gen_favs');
-      if (favsStr) {
-        const favs = JSON.parse(favsStr);
-        const updatedFavs = favs.map((item: RecipeResult) =>
-          (item.id === keyId || item.tempId === keyId)
-            ? { ...item, imageUrl: newUrl }
-            : item
-        );
-        localStorage.setItem('fit_gen_favs', JSON.stringify(updatedFavs));
-      }
-    } catch (storageErr) {
-      console.warn('[ResultScreen] Erro ao sincronizar localStorage:', storageErr);
+  useEffect(() => {
+    if (recipe.imageUrl) {
+      setCurrentImageUrl(recipe.imageUrl);
+      setImageState('ready');
+    } else if (recipe.imageError) {
+      setImageState('error');
+    } else {
+      setImageState('loading');
     }
-  };
+  }, [recipe.imageUrl, recipe.imageError, recipe.id, recipe.tempId]);
 
-  const triggerImageGeneration = async (isManualRetry = false) => {
-    if (isManualRetry) {
-      setIsRetryingImage(true);
-    }
+  const handleRetryImage = async () => {
+    setIsRetryingImage(true);
     setImageState('loading');
 
     try {
-      console.log(`[ResultScreen] Disparando geração da imagem (manual=${isManualRetry}) para: ${recipe.title}`);
-      const tImgStart = Date.now();
+      console.log(`[ResultScreen] Tentativa manual de gerar imagem para: ${recipe.title}`);
       const res = await fetch('/api/generate-recipe-image', {
         method: 'POST',
         headers: {
@@ -88,45 +68,27 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
       });
 
       const data = await res.json();
-      const tImgTotal = Date.now() - tImgStart;
-      console.log(`[PERF Client] Imagem recebida em ${tImgTotal}ms:`, data);
 
       if (res.ok && data.success && data.imageUrl) {
         recipe.imageUrl = data.imageUrl;
+        recipe.imageError = false;
         setCurrentImageUrl(data.imageUrl);
         setImageState('ready');
-        updateLocalStorageImage(data.imageUrl);
+
+        // Notifica o App para atualizar histórico, favoritos e Firestore public_recipes!
+        if (onUpdateImage) {
+          onUpdateImage(data.imageUrl);
+        }
       } else {
-        console.error('[ResultScreen] Falha ao gerar imagem:', data.error);
+        console.error('[ResultScreen] Falha na tentativa manual:', data.error);
         setImageState('error');
       }
     } catch (err) {
-      console.error('[ResultScreen] Erro de rede ao buscar imagem:', err);
+      console.error('[ResultScreen] Erro de rede ao tentar gerar imagem:', err);
       setImageState('error');
     } finally {
-      if (isManualRetry) {
-        setIsRetryingImage(false);
-      }
+      setIsRetryingImage(false);
     }
-  };
-
-  useEffect(() => {
-    if (recipe.imageUrl) {
-      setCurrentImageUrl(recipe.imageUrl);
-      setImageState('ready');
-      return;
-    }
-
-    const recipeKey = recipe.id || recipe.tempId || recipe.title;
-    if (autoRequestedRef.current !== recipeKey) {
-      autoRequestedRef.current = recipeKey;
-      setCurrentImageUrl('');
-      triggerImageGeneration(false);
-    }
-  }, [recipe.imageUrl, recipe.id, recipe.tempId, recipe.title]);
-
-  const handleRetryImage = () => {
-    triggerImageGeneration(true);
   };
 
   const toggleFavorite = () => {

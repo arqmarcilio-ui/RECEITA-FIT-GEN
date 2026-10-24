@@ -16,7 +16,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import AccountDeletion from './components/AccountDeletion';
 import { Language, translations } from './translations';
 import { LogOut, ShieldAlert, ChefHat, X } from 'lucide-react';
-import { auth, db, googleProvider, signInWithPopup, signInWithRedirect, signOut, doc, onSnapshot, collection, addDoc, serverTimestamp, getDoc, runTransaction } from './firebase';
+import { auth, db, googleProvider, signInWithPopup, signInWithRedirect, signOut, doc, onSnapshot, collection, addDoc, setDoc, updateDoc, serverTimestamp, getDoc, runTransaction } from './firebase';
 import { onAuthStateChanged, User, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in';
 import { Capacitor } from '@capacitor/core';
@@ -292,6 +292,158 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const startBackgroundImageGeneration = async (
+    targetRecipe: RecipeResult,
+    targetDocRef: any,
+    baseSavePromise: Promise<void>
+  ) => {
+    console.log(`[App Background Image] Iniciando geração da foto para: ${targetRecipe.title} (docId: ${targetDocRef.id})`);
+
+    try {
+      const res = await fetch('/api/generate-recipe-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: targetRecipe.title,
+          description: targetRecipe.description,
+          ingredients: Array.isArray(targetRecipe.ingredients) ? targetRecipe.ingredients.join(', ') : targetRecipe.ingredients,
+          recipeId: targetRecipe.id || targetRecipe.tempId || Date.now().toString(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success && data.imageUrl) {
+        console.log(`[App Background Image] Imagem pronta para "${targetRecipe.title}": ${data.imageUrl}`);
+        targetRecipe.imageUrl = data.imageUrl;
+        targetRecipe.imageError = false;
+
+        // 1. Atualiza estado result na tela se o usuário ainda estiver nela ou voltar
+        setResult((prev) => {
+          if (prev && (prev.id === targetRecipe.id || prev.tempId === targetRecipe.tempId)) {
+            return { ...prev, imageUrl: data.imageUrl, imageError: false };
+          }
+          return prev;
+        });
+
+        // 2. Atualiza Meu Histórico (fit_gen_hist)
+        try {
+          const histStr = localStorage.getItem('fit_gen_hist');
+          if (histStr) {
+            const hist = JSON.parse(histStr);
+            const updatedHist = hist.map((item: RecipeResult) =>
+              (item.id === targetRecipe.id || item.tempId === targetRecipe.tempId)
+                ? { ...item, imageUrl: data.imageUrl }
+                : item
+            );
+            localStorage.setItem('fit_gen_hist', JSON.stringify(updatedHist));
+          }
+        } catch (err) {
+          console.warn('[App] Erro ao sincronizar histórico local:', err);
+        }
+
+        // 3. Atualiza Favoritos (fit_gen_favs) se o usuário favoritou antes da imagem terminar
+        try {
+          const favsStr = localStorage.getItem('fit_gen_favs');
+          if (favsStr) {
+            const favs = JSON.parse(favsStr);
+            const updatedFavs = favs.map((item: RecipeResult) =>
+              (item.id === targetRecipe.id || item.tempId === targetRecipe.tempId)
+                ? { ...item, imageUrl: data.imageUrl }
+                : item
+            );
+            localStorage.setItem('fit_gen_favs', JSON.stringify(updatedFavs));
+          }
+        } catch (err) {
+          console.warn('[App] Erro ao sincronizar favoritos locais:', err);
+        }
+
+        // 4. Atualiza Firestore public_recipes (aguarda a criação base para não dar conflito)
+        try {
+          await baseSavePromise;
+          await updateDoc(targetDocRef, { imageUrl: data.imageUrl });
+          console.log(`[Firestore] Documento public_recipes/${targetDocRef.id} atualizado com imageUrl!`);
+        } catch (fsErr) {
+          console.error(`[Firestore] Erro ao atualizar public_recipes/${targetDocRef.id}:`, fsErr);
+        }
+
+      } else {
+        console.error('[App Background Image] API retornou erro:', data.error);
+        setResult((prev) => {
+          if (prev && (prev.id === targetRecipe.id || prev.tempId === targetRecipe.tempId)) {
+            return { ...prev, imageError: true };
+          }
+          return prev;
+        });
+      }
+    } catch (netErr) {
+      console.error('[App Background Image] Erro de rede ao buscar imagem:', netErr);
+      setResult((prev) => {
+        if (prev && (prev.id === targetRecipe.id || prev.tempId === targetRecipe.tempId)) {
+          return { ...prev, imageError: true };
+        }
+        return prev;
+      });
+    }
+  };
+
+  const handleManualImageUpdate = async (newImageUrl: string) => {
+    if (!result) return;
+    const recipeKey = result.id || result.tempId;
+    const docId = result.publicDocId;
+
+    console.log(`[App] Atualização manual de imagem para receita ${recipeKey} (publicDocId: ${docId})`);
+
+    // Atualiza estado local
+    setResult((prev) => prev ? { ...prev, imageUrl: newImageUrl, imageError: false } : prev);
+
+    // Atualiza Histórico local
+    try {
+      const histStr = localStorage.getItem('fit_gen_hist');
+      if (histStr) {
+        const hist = JSON.parse(histStr);
+        const updated = hist.map((item: RecipeResult) =>
+          (item.id === recipeKey || item.tempId === recipeKey)
+            ? { ...item, imageUrl: newImageUrl }
+            : item
+        );
+        localStorage.setItem('fit_gen_hist', JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.warn('[App] Erro ao sincronizar histórico:', err);
+    }
+
+    // Atualiza Favoritos locais
+    try {
+      const favsStr = localStorage.getItem('fit_gen_favs');
+      if (favsStr) {
+        const favs = JSON.parse(favsStr);
+        const updated = favs.map((item: RecipeResult) =>
+          (item.id === recipeKey || item.tempId === recipeKey)
+            ? { ...item, imageUrl: newImageUrl }
+            : item
+        );
+        localStorage.setItem('fit_gen_favs', JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.warn('[App] Erro ao sincronizar favoritos:', err);
+    }
+
+    // Atualiza Firestore public_recipes se houver publicDocId ou id
+    const firestoreId = docId || result.id;
+    if (firestoreId) {
+      try {
+        const docRef = doc(db, 'public_recipes', firestoreId);
+        await updateDoc(docRef, { imageUrl: newImageUrl });
+        console.log(`[Firestore] Documento public_recipes/${firestoreId} atualizado com nova imagem manual!`);
+      } catch (err) {
+        console.error(`[Firestore] Erro ao atualizar public_recipes/${firestoreId}:`, err);
+      }
+    }
+  };
+
   const handleGenerate = async (data: UserPreferences) => {
     const currentGenerationId = Math.random().toString(36).substring(7);
     console.log(`[App] Iniciando geração de receita #${currentGenerationId}...`);
@@ -306,12 +458,17 @@ const App: React.FC = () => {
       const elapsed = Date.now() - tStart;
       console.log(`[PERF Client] Receita textual recebida em ${elapsed}ms:`, recipe.title);
       recipe.id = recipe.tempId; // Use tempId as ID for local storage
+
+      // 1. Cria a referência do documento público antecipadamente (0ms)
+      const publicDocRef = doc(collection(db, 'public_recipes'));
+      recipe.publicDocId = publicDocRef.id;
       
+      // 2. Exibe IMEDIATAMENTE a receita na tela
       setResult(recipe);
-      console.log(`[App] Estado 'result' atualizado. Mudando para view 'result'.`);
+      console.log(`[App] Estado 'result' atualizado com publicDocId=${publicDocRef.id}. Mudando para view 'result'.`);
       setView('result');
       
-      // Save to local history immediately
+      // 3. Salva no histórico local imediatamente
       console.log(`[App] Salvando no histórico...`);
       const historyStr = localStorage.getItem('fit_gen_hist');
       let history = historyStr ? JSON.parse(historyStr) : [];
@@ -319,18 +476,21 @@ const App: React.FC = () => {
       safeSaveToLocalStorage('fit_gen_hist', newHistory, 20);
       console.log(`[App] Histórico salvo.`);
 
-      // Save to public history in Firestore (Background, non-blocking)
-      addDoc(collection(db, 'public_recipes'), {
+      // 4. Salva a receita pública no Firestore em background (promessa rastreada)
+      const publicSavePromise = setDoc(publicDocRef, {
         ...recipe,
         createdAt: serverTimestamp(),
         authorId: user?.uid,
         authorEmail: user?.email,
         authorName: user?.displayName || user?.email || 'Usuário'
       }).then(() => {
-        console.log(`[App] Receita salva no histórico público em background.`);
+        console.log(`[App] Receita pública salva no Firestore com ID: ${publicDocRef.id}`);
       }).catch((err) => {
-        console.error("[App] Erro ao salvar no histórico público:", err);
+        console.error("[App] Erro ao salvar receita pública:", err);
       });
+
+      // 5. Inicia a geração da imagem em background (desacoplada, não-bloqueante)
+      startBackgroundImageGeneration(recipe, publicDocRef, publicSavePromise);
       
     } catch (e: any) {
       console.error(`[App] Erro na geração:`, e);
@@ -445,6 +605,7 @@ const App: React.FC = () => {
           recipe={result} 
           language={language} 
           onBack={() => setView('splash')} 
+          onUpdateImage={handleManualImageUpdate}
         />
       )}
       
