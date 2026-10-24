@@ -472,8 +472,8 @@ const App: React.FC = () => {
       console.log(`[App] Salvando no histórico...`);
       const historyStr = localStorage.getItem('fit_gen_hist');
       let history = historyStr ? JSON.parse(historyStr) : [];
-      const newHistory = [recipe, ...history].slice(0, 20);
-      safeSaveToLocalStorage('fit_gen_hist', newHistory, 20);
+      const newHistory = [recipe, ...history].slice(0, 100);
+      safeSaveToLocalStorage('fit_gen_hist', newHistory, 100);
       console.log(`[App] Histórico salvo.`);
 
       // 4. Salva a receita pública no Firestore em background (promessa rastreada)

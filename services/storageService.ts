@@ -7,7 +7,7 @@ import { RecipeResult } from '../types';
  * 1. Removing images from older items.
  * 2. Reducing the number of items.
  */
-export const safeSaveToLocalStorage = (key: string, data: any[], maxItems: number = 20) => {
+export const safeSaveToLocalStorage = (key: string, data: any[], maxItems: number = 100) => {
   try {
     // Limit items first
     const limitedData = data.slice(0, maxItems);

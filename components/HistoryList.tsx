@@ -80,10 +80,10 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack, language })
           <div className="grid grid-cols-2 gap-4">
             {filteredHist.map((r, i) => (
               <motion.div 
-                key={i} 
+                key={r.id || r.tempId || i} 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: Math.min(i * 0.03, 0.4), duration: 0.3 }}
                 onClick={() => onSelect(r)}
                 className="bg-white p-4 rounded-[2.5rem] border-2 border-slate-50 shadow-sm flex flex-col gap-4 cursor-pointer active:scale-[0.98] transition-all group"
               >
@@ -92,6 +92,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack, language })
                     src={r.imageUrl || `https://picsum.photos/seed/${r.id}/400/400`} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     alt={r.title} 
+                    loading="lazy"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                   />
                 </div>
