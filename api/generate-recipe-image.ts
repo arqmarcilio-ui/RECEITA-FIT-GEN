@@ -47,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const response = await withRetry(() =>
       openai.images.generate({
-        model: "gpt-image-1",
+        model: "gpt-image-2.5-flare",
         prompt: imagePrompt,
         size: "1024x1024",
         quality: "low" // 🔥 melhora tempo de geração
@@ -111,12 +111,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
   } catch (error: any) {
-    console.error(`[Image API] erro:`, error);
+    console.error(`[Image API Error] Erro ao gerar imagem no Vercel:`, {
+      message: error?.message,
+      status: error?.status,
+      code: error?.code,
+    });
     
     return res.status(200).json({
       success: false,
       imageUrl: '',
-      error: error.message || 'Unknown error',
+      error: error?.message || 'Unknown error',
     });
   }
 }

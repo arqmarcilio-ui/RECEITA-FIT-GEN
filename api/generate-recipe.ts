@@ -574,14 +574,18 @@ Se a restrição for Vegano: use exclusivamente ingredientes 100% vegetais. É e
         const imageData = await imgRes.json();
         if (imageData.success === true && imageData.imageUrl) {
           recipeData.imageUrl = imageData.imageUrl;
+          console.log(`[Image API Backend] Imagem gerada com sucesso: ${recipeData.imageUrl}`);
         } else {
+          console.error(`[Image API Backend] Geração retornou sem sucesso:`, imageData.error);
           recipeData.imageUrl = '';
         }
       } else {
+        const errText = await imgRes.text();
+        console.error(`[Image API Backend] Endpoint retornou HTTP ${imgRes.status}:`, errText);
         recipeData.imageUrl = '';
       }
-    } catch (imgErr) {
-      console.error('[Image API Backend Error] falha ao gerar imagem:', imgErr);
+    } catch (imgErr: any) {
+      console.error('[Image API Backend Error] falha ao gerar imagem:', imgErr?.message || imgErr);
       recipeData.imageUrl = '';
     }
 
