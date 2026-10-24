@@ -24,9 +24,10 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
   const [checkedIngredients, setCheckedIngredients] = useState<string[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState<string>(recipe.imageUrl || '');
   const [imageState, setImageState] = useState<'loading' | 'error' | 'ready'>(
-    recipe.imageUrl ? 'ready' : 'error'
+    recipe.imageUrl ? 'ready' : 'loading'
   );
   const [isRetryingImage, setIsRetryingImage] = useState(false);
+  const autoRequestedRef = React.useRef<string | null>(null);
 
   useEffect(() => {
     const favsStr = localStorage.getItem('fit_gen_favs');
@@ -36,22 +37,43 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
     }
   }, [recipe.id, recipe.tempId]);
 
-  useEffect(() => {
-    if (recipe.imageUrl) {
-      setCurrentImageUrl(recipe.imageUrl);
-      setImageState('ready');
-    } else {
-      setCurrentImageUrl('');
-      setImageState('error');
+  const updateLocalStorageImage = (newUrl: string) => {
+    try {
+      const keyId = recipe.id || recipe.tempId;
+      const histStr = localStorage.getItem('fit_gen_hist');
+      if (histStr) {
+        const hist = JSON.parse(histStr);
+        const updated = hist.map((item: RecipeResult) =>
+          (item.id === keyId || item.tempId === keyId)
+            ? { ...item, imageUrl: newUrl }
+            : item
+        );
+        localStorage.setItem('fit_gen_hist', JSON.stringify(updated));
+      }
+      const favsStr = localStorage.getItem('fit_gen_favs');
+      if (favsStr) {
+        const favs = JSON.parse(favsStr);
+        const updatedFavs = favs.map((item: RecipeResult) =>
+          (item.id === keyId || item.tempId === keyId)
+            ? { ...item, imageUrl: newUrl }
+            : item
+        );
+        localStorage.setItem('fit_gen_favs', JSON.stringify(updatedFavs));
+      }
+    } catch (storageErr) {
+      console.warn('[ResultScreen] Erro ao sincronizar localStorage:', storageErr);
     }
-  }, [recipe.imageUrl, recipe.id, recipe.tempId]);
+  };
 
-  const handleRetryImage = async () => {
-    setIsRetryingImage(true);
+  const triggerImageGeneration = async (isManualRetry = false) => {
+    if (isManualRetry) {
+      setIsRetryingImage(true);
+    }
     setImageState('loading');
 
     try {
-      console.log(`[ResultScreen] Solicitando nova tentativa de imagem para: ${recipe.title}`);
+      console.log(`[ResultScreen] Disparando geração da imagem (manual=${isManualRetry}) para: ${recipe.title}`);
+      const tImgStart = Date.now();
       const res = await fetch('/api/generate-recipe-image', {
         method: 'POST',
         headers: {
@@ -66,48 +88,45 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ recipe, language, onBack })
       });
 
       const data = await res.json();
+      const tImgTotal = Date.now() - tImgStart;
+      console.log(`[PERF Client] Imagem recebida em ${tImgTotal}ms:`, data);
 
       if (res.ok && data.success && data.imageUrl) {
-        console.log(`[ResultScreen] Imagem gerada com sucesso: ${data.imageUrl}`);
         recipe.imageUrl = data.imageUrl;
         setCurrentImageUrl(data.imageUrl);
         setImageState('ready');
-
-        // Atualiza nos armazenamentos locais (histórico e favoritos)
-        try {
-          const histStr = localStorage.getItem('fit_gen_hist');
-          if (histStr) {
-            const hist = JSON.parse(histStr);
-            const updated = hist.map((item: RecipeResult) =>
-              (item.id === recipe.id || item.tempId === recipe.tempId)
-                ? { ...item, imageUrl: data.imageUrl }
-                : item
-            );
-            localStorage.setItem('fit_gen_hist', JSON.stringify(updated));
-          }
-          const favsStr = localStorage.getItem('fit_gen_favs');
-          if (favsStr) {
-            const favs = JSON.parse(favsStr);
-            const updatedFavs = favs.map((item: RecipeResult) =>
-              (item.id === recipe.id || item.tempId === recipe.tempId)
-                ? { ...item, imageUrl: data.imageUrl }
-                : item
-            );
-            localStorage.setItem('fit_gen_favs', JSON.stringify(updatedFavs));
-          }
-        } catch (storageErr) {
-          console.warn('[ResultScreen] Erro ao sincronizar localStorage:', storageErr);
-        }
+        updateLocalStorageImage(data.imageUrl);
       } else {
-        console.error('[ResultScreen] Falha ao gerar imagem na tentativa:', data.error);
+        console.error('[ResultScreen] Falha ao gerar imagem:', data.error);
         setImageState('error');
       }
     } catch (err) {
-      console.error('[ResultScreen] Erro de rede ao tentar gerar imagem:', err);
+      console.error('[ResultScreen] Erro de rede ao buscar imagem:', err);
       setImageState('error');
     } finally {
-      setIsRetryingImage(false);
+      if (isManualRetry) {
+        setIsRetryingImage(false);
+      }
     }
+  };
+
+  useEffect(() => {
+    if (recipe.imageUrl) {
+      setCurrentImageUrl(recipe.imageUrl);
+      setImageState('ready');
+      return;
+    }
+
+    const recipeKey = recipe.id || recipe.tempId || recipe.title;
+    if (autoRequestedRef.current !== recipeKey) {
+      autoRequestedRef.current = recipeKey;
+      setCurrentImageUrl('');
+      triggerImageGeneration(false);
+    }
+  }, [recipe.imageUrl, recipe.id, recipe.tempId, recipe.title]);
+
+  const handleRetryImage = () => {
+    triggerImageGeneration(true);
   };
 
   const toggleFavorite = () => {

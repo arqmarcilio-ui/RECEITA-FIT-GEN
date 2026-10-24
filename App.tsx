@@ -301,15 +301,17 @@ const App: React.FC = () => {
     setError(null);
     try {
       console.log(`[App] Chamando generateRecipe...`);
+      const tStart = Date.now();
       const recipe = await generateRecipe(data);
-      console.log(`[App] Receita recebida com sucesso:`, recipe.title);
+      const elapsed = Date.now() - tStart;
+      console.log(`[PERF Client] Receita textual recebida em ${elapsed}ms:`, recipe.title);
       recipe.id = recipe.tempId; // Use tempId as ID for local storage
       
       setResult(recipe);
       console.log(`[App] Estado 'result' atualizado. Mudando para view 'result'.`);
       setView('result');
       
-      // Save to history
+      // Save to local history immediately
       console.log(`[App] Salvando no histórico...`);
       const historyStr = localStorage.getItem('fit_gen_hist');
       let history = historyStr ? JSON.parse(historyStr) : [];
@@ -317,19 +319,18 @@ const App: React.FC = () => {
       safeSaveToLocalStorage('fit_gen_hist', newHistory, 20);
       console.log(`[App] Histórico salvo.`);
 
-      // Save to public history in Firestore
-      try {
-      await addDoc(collection(db, 'public_recipes'), {
-  ...recipe,
-  createdAt: serverTimestamp(),
-  authorId: user?.uid,
-  authorEmail: user?.email,
-  authorName: user?.displayName || user?.email || 'Usuário'
-});
-        console.log(`[App] Receita salva no histórico público.`);
-      } catch (err) {
+      // Save to public history in Firestore (Background, non-blocking)
+      addDoc(collection(db, 'public_recipes'), {
+        ...recipe,
+        createdAt: serverTimestamp(),
+        authorId: user?.uid,
+        authorEmail: user?.email,
+        authorName: user?.displayName || user?.email || 'Usuário'
+      }).then(() => {
+        console.log(`[App] Receita salva no histórico público em background.`);
+      }).catch((err) => {
         console.error("[App] Erro ao salvar no histórico público:", err);
-      }
+      });
       
     } catch (e: any) {
       console.error(`[App] Erro na geração:`, e);

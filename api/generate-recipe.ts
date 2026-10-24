@@ -413,6 +413,7 @@ REGRAS DE PREPARO:
 
 REGRAS DE FORMATO:
 - A descrição deve ter entre 30 e 40 palavras. Texto apetitoso e natural. Sem exageros publicitários.
+- Os passos de preparo devem ser claros, diretos e objetivos (entre 4 e 6 etapas).
 - Os macronutrientes devem ser curtos.
 - calories deve vir apenas no formato "350-400 kcal".
 - protein deve vir apenas no formato "10-12g".
@@ -430,6 +431,7 @@ A estimativa deve:
     console.log(`[Validation Diagnóstico] Perfil: "${prefs.mealType}", Restrições Ativas: [${prefs.dietaryFilters.join(', ')}]`);
 
     // 8. Execução da chamada do Gemini (Tentativa 1)
+    const tGeminiStart = Date.now();
     const response = await withRetry(() =>
       ai.models.generateContent({
         model: "gemini-2.5-flash",
@@ -465,6 +467,8 @@ A estimativa deve:
         },
       })
     );
+    const geminiDuration = Date.now() - tGeminiStart;
+    console.log(`[PERF Backend] Gemini gerou receita em ${geminiDuration}ms`);
 
     if (!response.text) {
       throw new Error("Resposta vazia do modelo Gemini");
@@ -477,11 +481,16 @@ A estimativa deve:
     console.log(`[Validation Diagnóstico Tentativa 1] Ingredientes gerados (${recipeData.ingredients?.length || 0}):`, recipeData.ingredients);
 
     // 9. Validação contra ingredientes proibidos
+    const tValStart = Date.now();
     const validation1 = validateIngredients(recipeData.ingredients, prefs.dietaryFilters);
+    const valDuration = Date.now() - tValStart;
+    console.log(`[PERF Backend] Validação concluída em ${valDuration}ms`);
 
+    let retryDuration = 0;
     if (validation1.forbidden) {
       console.warn(`[Validation Diagnóstico Bloqueio Tentativa 1] Incompatibilidade detectada! Regra: "${validation1.rule}", Termo: "${validation1.term}", Ingrediente: "${validation1.offendingIngredient}". Regenerando automaticamente...`);
       
+      const tRetryStart = Date.now();
       const retryResponse = await withRetry(() =>
         ai.models.generateContent({
           model: "gemini-2.5-flash",
@@ -522,6 +531,8 @@ Se a restrição for Vegano: use exclusivamente ingredientes 100% vegetais. É e
           },
         })
       );
+      retryDuration = Date.now() - tRetryStart;
+      console.log(`[PERF Backend] Retry concluído em ${retryDuration}ms`);
 
       if (!retryResponse.text) {
         throw new Error("Não conseguimos gerar uma opção totalmente compatível desta vez. Tente novamente.");
@@ -549,47 +560,18 @@ Se a restrição for Vegano: use exclusivamente ingredientes 100% vegetais. É e
       console.log(`[Validation Diagnóstico Sucesso] Receita aprovada na Tentativa 1!`);
     }
 
-    // 10. Chamada interna da API de Imagem do Vercel
-    try {
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.headers.host;
-      const baseUrl = `${protocol}://${host}`;
+    // 10. Desacoplamento da Imagem: Retorna IMEDIATAMENTE a receita textual
+    // A imagem é gerada de forma assíncrona pelo cliente na ResultScreen
+    const totalBackendMs = Date.now() - now;
+    recipeData.imageUrl = '';
+    recipeData.timings = {
+      geminiMs: geminiDuration,
+      validationMs: valDuration,
+      retryMs: retryDuration,
+      totalBackendMs,
+    };
 
-      console.log(`[Image API Backend] chamando geração para: ${recipeData.title}`);
-      
-      const imgRes = await fetch(`${baseUrl}/api/generate-recipe-image`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: recipeData.title,
-          description: recipeData.description,
-          ingredients: recipeData.ingredients.join(', '),
-          recipeId: recipeData.tempId,
-        }),
-      });
-
-      if (imgRes.ok) {
-        const imageData = await imgRes.json();
-        if (imageData.success === true && imageData.imageUrl) {
-          recipeData.imageUrl = imageData.imageUrl;
-          console.log(`[Image API Backend] Imagem gerada com sucesso: ${recipeData.imageUrl}`);
-        } else {
-          console.error(`[Image API Backend] Geração retornou sem sucesso:`, imageData.error);
-          recipeData.imageUrl = '';
-        }
-      } else {
-        const errText = await imgRes.text();
-        console.error(`[Image API Backend] Endpoint retornou HTTP ${imgRes.status}:`, errText);
-        recipeData.imageUrl = '';
-      }
-    } catch (imgErr: any) {
-      console.error('[Image API Backend Error] falha ao gerar imagem:', imgErr?.message || imgErr);
-      recipeData.imageUrl = '';
-    }
-
-    // Retorna apenas a receita gerada com segurança
+    console.log(`[PERF Backend] Retornando receita textual imediatamente em ${totalBackendMs}ms (Gemini: ${geminiDuration}ms, Validação: ${valDuration}ms, Retry: ${retryDuration}ms)`);
     return res.status(200).json(recipeData);
 
   } catch (error: any) {

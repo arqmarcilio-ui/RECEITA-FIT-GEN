@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
+import { getDownloadURL } from 'firebase-admin/storage';
 import { getFirebaseAdmin } from './_firebase-admin.js';
 
 async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 2000): Promise<T> {
@@ -98,16 +99,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const uploadTime = Date.now();
     console.log(`[Image API] Upload levou ${uploadTime - downloadTime}ms`);
 
-    const { getDownloadURL } = await import('firebase-admin/storage');
     const publicUrl = await getDownloadURL(file);
 
     const finalTime = Date.now();
-    console.log(`[Image API] Total: ${finalTime - startTime}ms`);
+    const openaiMs = openaiTime - startTime;
+    const storageMs = finalTime - downloadTime;
+    const totalMs = finalTime - startTime;
+
+    console.log(`[Image API] Total: ${totalMs}ms (OpenAI: ${openaiMs}ms, Storage: ${storageMs}ms)`);
 
     return res.status(200).json({
       success: true,
       imageUrl: publicUrl,
       storagePath: fileName,
+      timings: {
+        openaiMs,
+        storageMs,
+        totalMs,
+      },
     });
 
   } catch (error: any) {
