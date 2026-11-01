@@ -564,6 +564,7 @@ Se a restrição for Vegano: use exclusivamente ingredientes 100% vegetais. É e
     // A imagem é gerada de forma assíncrona pelo cliente na ResultScreen
     const totalBackendMs = Date.now() - now;
     recipeData.imageUrl = '';
+    recipeData.dietaryFilters = Array.isArray(prefs.dietaryFilters) ? prefs.dietaryFilters : [DietaryFilter.SEM_RESTRICAO];
     recipeData.timings = {
       geminiMs: geminiDuration,
       validationMs: valDuration,

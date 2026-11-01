@@ -7,7 +7,7 @@ interface SplashScreenProps {
   onStart: () => void;
   onOpenFavorites: () => void;
   onOpenHistory: () => void;
-  onOpenPublicHistory: () => void;
+  onOpenPublicHistory?: () => void;
   language: Language;
   onLanguageChange: (lang: Language) => void;
 }
@@ -67,13 +67,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
             >
               <History className="w-4 h-4 text-emerald-500" />
               {t.history}
-            </button>
-            <button 
-              onClick={onOpenPublicHistory}
-              className="flex items-center justify-center gap-2 py-5 bg-white border-2 border-slate-100 text-slate-900 rounded-3xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all"
-            >
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              {t.publicHistory}
             </button>
           </div>
         </div>

@@ -64,6 +64,7 @@ export interface RecipeResult {
   tempId?: string;
   publicDocId?: string;
   imageError?: boolean;
+  dietaryFilters?: DietaryFilter[];
   macros: {
     protein: string;
     carbs: string;
@@ -71,4 +72,5 @@ export interface RecipeResult {
     calories: string;
   };
   isFavorite?: boolean;
+  timings?: any;
 }

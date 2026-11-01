@@ -458,6 +458,9 @@ const App: React.FC = () => {
       const elapsed = Date.now() - tStart;
       console.log(`[PERF Client] Receita textual recebida em ${elapsed}ms:`, recipe.title);
       recipe.id = recipe.tempId; // Use tempId as ID for local storage
+      recipe.dietaryFilters = (data.dietaryFilters && data.dietaryFilters.length > 0)
+        ? data.dietaryFilters
+        : [DietaryFilter.SEM_RESTRICAO];
 
       // 1. Cria a referência do documento público antecipadamente (0ms)
       const publicDocRef = doc(collection(db, 'public_recipes'));
@@ -479,6 +482,7 @@ const App: React.FC = () => {
       // 4. Salva a receita pública no Firestore em background (promessa rastreada)
       const publicSavePromise = setDoc(publicDocRef, {
         ...recipe,
+        dietaryFilters: recipe.dietaryFilters,
         createdAt: serverTimestamp(),
         authorId: user?.uid,
         authorEmail: user?.email,
@@ -626,7 +630,8 @@ const App: React.FC = () => {
       )}
       
       {view === 'publicHist' && (
-        <PublicHistoryList 
+        <HistoryList 
+          initialTab="all"
           language={language} 
           onSelect={(r) => { setResult(r); setView('result'); }} 
           onBack={() => setView('splash')} 
