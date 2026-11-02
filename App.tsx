@@ -23,7 +23,8 @@ import { Capacitor } from '@capacitor/core';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist' | 'privacy' | 'deletion'>('splash');
-  const [language, setLanguage] = useState<Language>('pt');
+  // Idioma fixo em Português do Brasil (PT-BR)
+  const language: Language = 'pt';
   const t = translations[language];
  const [prefs, setPrefs] = useState<UserPreferences>({
   dietaryFilters: [DietaryFilter.SEM_RESTRICAO],
@@ -273,6 +274,15 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // Garante que o app opere estritamente em PT-BR e ignora chaves legadas de idioma
+    try {
+      localStorage.removeItem('language');
+      localStorage.removeItem('lang');
+      localStorage.removeItem('fit_gen_language');
+    } catch {
+      // Ignora erro de acesso ao localStorage
+    }
+
     const params = new URLSearchParams(window.location.search);
     const recipeId = params.get('id');
     
@@ -574,7 +584,6 @@ const App: React.FC = () => {
       {view === 'splash' && (
         <SplashScreen 
           language={language} 
-          onLanguageChange={setLanguage} 
           onStart={() => setView('form')} 
           onOpenFavorites={() => setView('favs')} 
           onOpenHistory={() => setView('hist')} 

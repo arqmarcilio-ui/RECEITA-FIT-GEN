@@ -231,7 +231,7 @@ Gerado por Receita Fit Gen`;
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-8 py-6 flex items-center justify-between">
         <button onClick={onBack} className="flex items-center gap-2 p-3 bg-slate-100 text-slate-900 rounded-full hover:bg-slate-200 transition-all group">
           <ArrowLeft className="w-5 h-5" />
-          <span className="text-[10px] font-black uppercase tracking-widest pr-1">{t.signOut}</span>
+          <span className="text-[10px] font-black uppercase tracking-widest pr-1">{t.back}</span>
         </button>
         <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">{t.recipeResult}</h2>
         <div className="flex gap-2">

@@ -8,8 +8,8 @@ interface SplashScreenProps {
   onOpenFavorites: () => void;
   onOpenHistory: () => void;
   onOpenPublicHistory?: () => void;
-  language: Language;
-  onLanguageChange: (lang: Language) => void;
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
 }
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ 
@@ -17,30 +17,12 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
   onOpenFavorites, 
   onOpenHistory,
   onOpenPublicHistory,
-  language,
-  onLanguageChange
+  language = 'pt'
 }) => {
   const t = translations[language];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-white relative overflow-hidden">
-      {/* Language Selector */}
-      <div className="absolute top-12 left-0 right-0 z-50 flex justify-center gap-2">
-        {(['pt', 'en'] as const).map((lang) => (
-          <button 
-            key={lang}
-            onClick={() => onLanguageChange(lang)}
-            className={`px-6 py-2 rounded-full font-black text-[10px] tracking-widest uppercase transition-all ${
-              language === lang 
-                ? 'bg-emerald-500 text-white shadow-lg' 
-                : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
-            }`}
-          >
-            {lang}
-          </button>
-        ))}
-      </div>
-
       <div className="w-full max-w-sm relative z-10 flex flex-col items-center">
         <div className="space-y-4 mb-20">
           <h1 className="text-6xl font-black text-slate-900 leading-none tracking-tighter uppercase">
