@@ -194,7 +194,7 @@ const HistoryList: React.FC<HistoryListProps> = ({
         </button>
 
         {/* Título Principal Sem Emojis */}
-        <h2 className="text-4xl sm:text-5xl font-black text-slate-900 uppercase leading-none tracking-tighter">
+        <h2 className="text-sm font-black text-slate-900 uppercase leading-none tracking-widest">
           {t.historyTitle}
         </h2>
 
