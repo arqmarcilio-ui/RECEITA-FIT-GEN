@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { DietaryFilter, MealType, CalorieLevel, Flavor, SkillLevel, UserPreferences, RecipeResult } from './types';
+import { DietaryFilter, NutritionalGoal, UserPreferences, RecipeResult, createInitialFormState } from './types';
 import { generateRecipe } from './services/geminiService';
 import { safeSaveToLocalStorage } from './services/storageService';
 import SplashScreen from './components/SplashScreen';
@@ -26,20 +26,16 @@ const App: React.FC = () => {
   // Idioma fixo em Português do Brasil (PT-BR)
   const language: Language = 'pt';
   const t = translations[language];
- const [prefs, setPrefs] = useState<UserPreferences>({
-  dietaryFilters: [DietaryFilter.SEM_RESTRICAO],
-  mealType: MealType.ALMOCO,
-  dishType: '',
-  cookingMethod: 'Não definido',
-  peopleCount: 1,
-    calorieLevel: CalorieLevel.NAO_DEFINIDO,
-    flavor: Flavor.SALGADO,
-    ingredients: '',
-    dispensableIngredients: '',
-    skillLevel: SkillLevel.BASICA
-  });
+  const [prefs, setPrefs] = useState<UserPreferences>(createInitialFormState);
+  const [formKey, setFormKey] = useState<number>(0);
   const [result, setResult] = useState<RecipeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const resetFormState = () => {
+    setPrefs(createInitialFormState());
+    setFormKey(prev => prev + 1);
+    setError(null);
+  };
 
   // Auth state
   const [user, setUser] = useState<User | null>(null);
@@ -468,9 +464,16 @@ const App: React.FC = () => {
       const elapsed = Date.now() - tStart;
       console.log(`[PERF Client] Receita textual recebida em ${elapsed}ms:`, recipe.title);
       recipe.id = recipe.tempId; // Use tempId as ID for local storage
-      recipe.dietaryFilters = (data.dietaryFilters && data.dietaryFilters.length > 0)
-        ? data.dietaryFilters
+      const baseFilters = (data.dietaryFilters && data.dietaryFilters.length > 0)
+        ? [...data.dietaryFilters]
         : [DietaryFilter.SEM_RESTRICAO];
+      if (data.nutritionalGoal === NutritionalGoal.LOW_CARB && !baseFilters.includes(DietaryFilter.LOW_CARB)) {
+        const withoutDefault = baseFilters.filter(f => f !== DietaryFilter.SEM_RESTRICAO);
+        withoutDefault.push(DietaryFilter.LOW_CARB);
+        recipe.dietaryFilters = withoutDefault;
+      } else {
+        recipe.dietaryFilters = baseFilters;
+      }
 
       // 1. Cria a referência do documento público antecipadamente (0ms)
       const publicDocRef = doc(collection(db, 'public_recipes'));
@@ -584,7 +587,10 @@ const App: React.FC = () => {
       {view === 'splash' && (
         <SplashScreen 
           language={language} 
-          onStart={() => setView('form')} 
+          onStart={() => {
+            resetFormState();
+            setView('form');
+          }} 
           onOpenFavorites={() => setView('favs')} 
           onOpenHistory={() => setView('hist')} 
           onOpenPublicHistory={() => setView('publicHist')}
@@ -607,7 +613,16 @@ const App: React.FC = () => {
               </button>
             </div>
           )}
-          <StepForm initialData={prefs} language={language} onCancel={() => setView('splash')} onSubmit={handleGenerate} />
+          <StepForm
+            key={formKey}
+            initialData={prefs}
+            language={language}
+            onCancel={() => {
+              resetFormState();
+              setView('splash');
+            }}
+            onSubmit={handleGenerate}
+          />
         </div>
       )}
       
@@ -617,7 +632,10 @@ const App: React.FC = () => {
         <ResultScreen 
           recipe={result} 
           language={language} 
-          onBack={() => setView('splash')} 
+          onBack={() => {
+            resetFormState();
+            setView('splash');
+          }} 
           onUpdateImage={handleManualImageUpdate}
         />
       )}

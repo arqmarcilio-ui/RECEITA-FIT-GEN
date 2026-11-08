@@ -14,12 +14,13 @@ enum DietaryFilter {
 
 interface UserPreferences {
   dietaryFilters: DietaryFilter[];
+  nutritionalGoal?: string;
+  preparationCategory?: string;
   mealType: string;
   dishType?: string;
   cookingMethod: string;
   peopleCount: number;
   calorieLevel: string;
-  flavor: string;
   ingredients?: string;
   dispensableIngredients?: string;
   skillLevel: string;
@@ -313,7 +314,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       !prefs.cookingMethod ||
       typeof prefs.peopleCount !== 'number' ||
       !prefs.calorieLevel ||
-      !prefs.flavor ||
       !prefs.skillLevel
     ) {
       return res.status(400).json({ error: 'Parâmetros de preferências inválidos ou ausentes.' });
@@ -323,7 +323,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (
       (prefs.ingredients && prefs.ingredients.length > 500) ||
       (prefs.dispensableIngredients && prefs.dispensableIngredients.length > 500) ||
-      (prefs.dishType && prefs.dishType.length > 100)
+      (prefs.dishType && prefs.dishType.length > 100) ||
+      (prefs.nutritionalGoal && prefs.nutritionalGoal.length > 100)
     ) {
       return res.status(400).json({ error: 'O tamanho dos campos excede os limites de segurança permitidos.' });
     }
@@ -372,7 +373,7 @@ Sua missão é criar receitas nutricionalmente coerentes, seguras, fáceis de pr
 
 REGRAS CRÍTICAS:
 1. O idioma de toda a resposta (título, descrição, ingredientes, instruções e qualquer outro campo) DEVE ser OBRIGATORIAMENTE Português do Brasil (PT-BR).
-2. O sabor deve ser estritamente o solicitado.
+2. Respeite o tipo de preparo solicitado (Refeição, Sobremesa, Bebida ou Algo específico) e, se informada, a Meta Nutricional.
 3. Respeite TODAS as restrições dietéticas selecionadas.
 4. O custo deve ser realista para o mercado brasileiro atual (R$).
 5. A estimativa de custo deve ser obrigatoriamente uma faixa de preço em reais, no formato: "R$ 15,00 - R$ 25,00".
@@ -385,17 +386,25 @@ REGRAS DE SEGURANÇA ALIMENTAR:
 - Se o usuário selecionar "Vegano", a receita DEVE ser 100% vegetal. Proíba expressamente carne, frango, peixe, frutos do mar, ovos, leite animal, queijo animal, manteiga animal, iogurte animal, creme de leite animal, whey lácteo, mel de abelha, gelatina animal ou qualquer outro derivado de origem animal.
 - Se o usuário selecionar "Vegetariano", proíba carnes, aves, peixes, frutos do mar e gelatina animal (ovos e laticínios são permitidos).
 - Se o usuário selecionar "Sem Açúcar", proíba açúcar comum e ingredientes claramente açucarados.
-- Em caso de qualquer conflito entre sabor e segurança alimentar, a segurança alimentar tem prioridade absoluta.
+- Em caso de qualquer conflito entre preferência culinária e segurança alimentar, a segurança alimentar tem prioridade absoluta.
 - Nunca sugira substituições duvidosas para alergias/restrições severas sem deixar claro que são apenas sugestões culinárias.
 - Se houver dúvida sobre um ingrediente, exclua esse ingrediente da receita.`;
 
+    const nutritionalGoalText = prefs.nutritionalGoal && prefs.nutritionalGoal.trim()
+      ? prefs.nutritionalGoal.trim()
+      : 'Nenhuma meta específica (gerar receita saudável padrão dentro do perfil alimentar)';
+
+    const preparationDescription = prefs.preparationCategory
+      ? `${prefs.preparationCategory} (${prefs.mealType})`
+      : prefs.mealType;
+
     const prompt = `Gere uma receita FIT personalizada:
 - Para ${prefs.peopleCount} pessoa(s).
-- Momento: ${prefs.mealType} ${prefs.dishType ? `(Estilo desejado: ${prefs.dishType})` : ''}
+- O que preparar / Momento: ${preparationDescription} ${prefs.dishType ? `(Pedido específico: ${prefs.dishType})` : ''}
 - Forma de Cozimento: ${prefs.cookingMethod}
 - Perfil Dietético: ${dietProfile}
+- Meta Nutricional: ${nutritionalGoalText}
 - Meta Calórica: ${prefs.calorieLevel}
-- Sabor Principal: ${prefs.flavor}
 - Nível de Habilidade: ${prefs.skillLevel}
 - Ingredientes para usar: ${prefs.ingredients || 'Os melhores disponíveis'}
 - Ingredientes para EVITAR: ${prefs.dispensableIngredients || 'Nenhum'}${dietaryReinforcement}
@@ -565,7 +574,16 @@ Se a restrição for Vegano: use exclusivamente ingredientes 100% vegetais. É e
     // A imagem é gerada de forma assíncrona pelo cliente na ResultScreen
     const totalBackendMs = Date.now() - now;
     recipeData.imageUrl = '';
-    recipeData.dietaryFilters = Array.isArray(prefs.dietaryFilters) ? prefs.dietaryFilters : [DietaryFilter.SEM_RESTRICAO];
+    const finalDietaryFilters = Array.isArray(prefs.dietaryFilters) && prefs.dietaryFilters.length > 0
+      ? [...prefs.dietaryFilters]
+      : [DietaryFilter.SEM_RESTRICAO];
+    if (prefs.nutritionalGoal === 'Low Carb' && !finalDietaryFilters.includes(DietaryFilter.LOW_CARB)) {
+      const cleaned = finalDietaryFilters.filter(f => f !== DietaryFilter.SEM_RESTRICAO);
+      cleaned.push(DietaryFilter.LOW_CARB);
+      recipeData.dietaryFilters = cleaned;
+    } else {
+      recipeData.dietaryFilters = finalDietaryFilters;
+    }
     recipeData.timings = {
       geminiMs: geminiDuration,
       validationMs: valDuration,

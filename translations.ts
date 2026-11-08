@@ -40,14 +40,17 @@ export const translations = {
     back: 'Voltar',
     profileQuestion: 'Qual seu perfil?',
     profileSub: 'Escolha uma ou mais opções.',
-    mealMoment: 'Momento do dia',
-    specificDish: 'Prato específico',
+    nutritionalGoal: 'META NUTRICIONAL',
+    nutritionalGoalSub: 'Opcional — escolha até uma meta',
+    whatToPrepare: 'O que você quer preparar?',
+    mealMoment: 'Momento da refeição',
+    specificDish: 'O que você quer preparar?',
     dishPlaceholder: 'Ex: Panqueca de Aveia, Poke, Wrap...',
     dishSub: 'Direcione a IA para o que deseja comer',
     portions: 'Porções',
     people: 'Pessoas',
+    cookingMethodTitle: 'Forma de cozimento',
     calories: 'Calorias',
-    flavorOption: 'Opção de Sabor',
     preparation: 'Habilidade do Chef',
     ingredients: 'Ingredientes',
     availableIngredients: 'Quero Usar esses Ingredientes (opcional)',
@@ -96,13 +99,28 @@ export const translations = {
       'Sem Glúten': 'Sem Glúten',
       'Sem Açúcar': 'Sem Açúcar'
     },
+    nutritionalGoals: {
+      'Emagrecimento': 'Emagrecimento',
+      'Ganho de massa': 'Ganho de massa',
+      'Alta proteína': 'Alta proteína',
+      'Low Carb': 'Low Carb',
+      'Baixa caloria': 'Baixa caloria',
+      'Mais fibras': 'Mais fibras'
+    },
+    preparationCategories: {
+      'Refeição': 'Refeição',
+      'Sobremesa': 'Sobremesa',
+      'Bebida': 'Bebida',
+      'Algo específico': 'Algo específico'
+    },
     mealTypes: {
-      'Café da Manhã': 'Café da Manhã',
+      'Café da Manhã': 'Café da manhã',
       'Almoço': 'Almoço',
       'Jantar': 'Jantar',
       'Lanche': 'Lanche',
       'Sobremesa': 'Sobremesa',
-      'Prato Específico': 'Prato Específico'
+      'Bebida': 'Bebida',
+      'Prato Específico': 'Algo específico'
     },
     calorieLevels: {
       'Até 200 kcal': 'Até 200 kcal',
@@ -111,11 +129,6 @@ export const translations = {
       '600-800 kcal': '600-800 kcal',
       '800+ kcal': '800+ kcal',
       'Não definido': 'Não definido'
-    },
-    flavors: {
-      'Salgado': 'Salgado',
-      'Doce': 'Doce',
-      'Agridoce': 'Agridoce'
     },
     skillLevels: {
       'Básica': 'Básica',
@@ -161,14 +174,17 @@ export const translations = {
     back: 'Back',
     profileQuestion: 'What is your profile?',
     profileSub: 'Choose one or more options.',
+    nutritionalGoal: 'NUTRITIONAL GOAL',
+    nutritionalGoalSub: 'Optional — choose up to one goal',
+    whatToPrepare: 'What do you want to prepare?',
     mealMoment: 'Time of day',
-    specificDish: 'Specific dish',
+    specificDish: 'What do you want to prepare?',
     dishPlaceholder: 'Ex: Oat Pancake, Poke, Wrap...',
     dishSub: 'Direct the AI to what you want to eat',
     portions: 'Portions',
     people: 'People',
+    cookingMethodTitle: 'Cooking method',
     calories: 'Calories',
-    flavorOption: 'Flavor Option',
     preparation: 'Preparation',
     ingredients: 'Ingredients',
     availableIngredients: 'I have this ingredient at home',
@@ -217,13 +233,28 @@ export const translations = {
       'Sem Glúten': 'Gluten Free',
       'Sem Açúcar': 'Sugar Free'
     },
+    nutritionalGoals: {
+      'Emagrecimento': 'Weight Loss',
+      'Ganho de massa': 'Muscle Gain',
+      'Alta proteína': 'High Protein',
+      'Low Carb': 'Low Carb',
+      'Baixa caloria': 'Low Calorie',
+      'Mais fibras': 'More Fiber'
+    },
+    preparationCategories: {
+      'Refeição': 'Meal',
+      'Sobremesa': 'Dessert',
+      'Bebida': 'Beverage',
+      'Algo específico': 'Something specific'
+    },
     mealTypes: {
       'Café da Manhã': 'Breakfast',
       'Almoço': 'Lunch',
       'Jantar': 'Dinner',
       'Lanche': 'Snack',
       'Sobremesa': 'Dessert',
-      'Prato Específico': 'Specific Dish'
+      'Bebida': 'Beverage',
+      'Prato Específico': 'Something specific'
     },
     calorieLevels: {
       'Até 200 kcal': 'Up to 200 kcal',
@@ -232,11 +263,6 @@ export const translations = {
       '600-800 kcal': '600-800 kcal',
       '800+ kcal': '800+ kcal',
       'Não definido': 'Not defined'
-    },
-    flavors: {
-      'Salgado': 'Savory',
-      'Doce': 'Sweet',
-      'Agridoce': 'Sweet and Sour'
     },
     skillLevels: {
       'Básica': 'Basic',
