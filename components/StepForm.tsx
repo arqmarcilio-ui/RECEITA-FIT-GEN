@@ -40,9 +40,6 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
     ...initialData,
     dietaryFilters: [...initialData.dietaryFilters]
   }));
-  const [showNutritionalGoals, setShowNutritionalGoals] = useState<boolean>(
-    Boolean(initialData.nutritionalGoal)
-  );
   const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false);
   const [showCustomPeopleInput, setShowCustomPeopleInput] = useState(
     ![1, 2, 3, 4].includes(initialData.peopleCount)
@@ -90,10 +87,10 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
     });
   };
 
-  const selectNutritionalGoal = (goal: NutritionalGoal) => {
+  const selectNutritionalGoal = (goal: NutritionalGoal | '') => {
     setFormData(p => ({
       ...p,
-      nutritionalGoal: p.nutritionalGoal === goal ? '' : goal
+      nutritionalGoal: goal
     }));
   };
 
@@ -165,7 +162,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
     <div className="flex flex-col h-screen bg-white overflow-hidden">
       <StepHeader />
 
-      <div className="flex-1 overflow-y-auto px-8 py-2 space-y-6 pb-56">
+      <div className="flex-1 overflow-y-auto px-8 py-2 space-y-6 pb-64">
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div
@@ -188,6 +185,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                 {MAIN_DIETARY_PROFILES.map(f => (
                   <button
                     key={f}
+                    type="button"
                     onClick={() => toggleDietary(f)}
                     className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
                       formData.dietaryFilters.includes(f)
@@ -200,6 +198,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                 ))}
 
                 <button
+                  type="button"
                   onClick={() => toggleDietary(DietaryFilter.SEM_RESTRICAO)}
                   className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
                     formData.dietaryFilters.includes(DietaryFilter.SEM_RESTRICAO)
@@ -212,43 +211,43 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               </div>
 
               <div className="space-y-4 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNutritionalGoals(prev => !prev)}
-                  className={`w-full p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
-                    showNutritionalGoals || Boolean(formData.nutritionalGoal)
-                      ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                      : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
-                  }`}
-                >
-                  {t.nutritionalGoal}
-                  {formData.nutritionalGoal ? `: ${(t.nutritionalGoals as any)[formData.nutritionalGoal]}` : ''}
-                </button>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                    {t.nutritionalGoal}
+                  </h3>
+                  <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                    {t.nutritionalGoalSub}
+                  </p>
+                </div>
 
-                {showNutritionalGoals && (
-                  <div className="space-y-3 pt-1">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">
-                      {t.nutritionalGoalSub}
-                    </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.values(NutritionalGoal).map(goal => (
+                    <button
+                      key={goal}
+                      type="button"
+                      onClick={() => selectNutritionalGoal(goal)}
+                      className={`p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                        formData.nutritionalGoal === goal
+                          ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
+                          : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                      }`}
+                    >
+                      {(t.nutritionalGoals as any)[goal]}
+                    </button>
+                  ))}
 
-                    <div className="grid grid-cols-2 gap-2">
-                      {Object.values(NutritionalGoal).map(goal => (
-                        <button
-                          key={goal}
-                          type="button"
-                          onClick={() => selectNutritionalGoal(goal)}
-                          className={`p-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
-                            formData.nutritionalGoal === goal
-                              ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                              : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
-                          }`}
-                        >
-                          {(t.nutritionalGoals as any)[goal]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => selectNutritionalGoal('')}
+                    className={`col-span-2 p-5 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                      formData.nutritionalGoal === ''
+                        ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
+                        : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                    }`}
+                  >
+                    {t.noNutritionalGoal}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -541,7 +540,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
         </AnimatePresence>
       </div>
 
-      <div className="px-8 pt-4 pb-12 bg-white flex gap-4 absolute bottom-10 left-0 right-0">
+      <div className="px-8 pt-6 pb-8 bg-white flex gap-4 absolute bottom-4 left-0 right-0">
         <button
           onClick={handleBack}
           className="flex-1 py-5 bg-white border-2 border-slate-200 text-slate-900 rounded-3xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all"
