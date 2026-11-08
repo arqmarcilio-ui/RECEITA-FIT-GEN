@@ -187,7 +187,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                     key={f}
                     type="button"
                     onClick={() => toggleDietary(f)}
-                    className={`py-3 px-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                    className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                       formData.dietaryFilters.includes(f)
                         ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                         : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -200,7 +200,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                 <button
                   type="button"
                   onClick={() => toggleDietary(DietaryFilter.SEM_RESTRICAO)}
-                  className={`py-3 px-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                  className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                     formData.dietaryFilters.includes(DietaryFilter.SEM_RESTRICAO)
                       ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                       : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -226,7 +226,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       key={goal}
                       type="button"
                       onClick={() => selectNutritionalGoal(goal)}
-                      className={`py-3 px-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                      className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                         formData.nutritionalGoal === goal
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -239,7 +239,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   <button
                     type="button"
                     onClick={() => selectNutritionalGoal('')}
-                    className={`col-span-2 py-3 px-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                    className={`col-span-2 py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                       formData.nutritionalGoal === ''
                         ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                         : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -273,7 +273,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       key={cat}
                       type="button"
                       onClick={() => selectPreparationCategory(cat)}
-                      className={`py-3.5 px-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                      className={`py-3.5 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                         formData.preparationCategory === cat
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -296,7 +296,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                           key={m}
                           type="button"
                           onClick={() => selectMealMoment(m)}
-                          className={`py-3 px-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                          className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                             formData.mealType === m
                               ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                               : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -346,7 +346,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                             setShowCustomPeopleInput(false);
                             setCustomPeopleValue('');
                           }}
-                          className={`flex-1 py-3.5 border-2 rounded-xl transition-all font-black text-xs ${
+                          className={`flex-1 py-3.5 border-2 rounded-xl transition-all font-black text-[14px] leading-4 ${
                             formData.peopleCount === num && !showCustomPeopleInput
                               ? 'bg-emerald-50/50 border-emerald-500 text-emerald-600'
                               : 'bg-white border-slate-300 text-slate-800 hover:border-emerald-500 hover:text-emerald-500'
@@ -359,7 +359,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       <button
                         type="button"
                         onClick={() => setShowCustomPeopleInput(true)}
-                        className={`flex-1 py-3.5 border-2 rounded-xl transition-all font-black text-xs ${
+                        className={`flex-1 py-3.5 border-2 rounded-xl transition-all font-black text-[14px] leading-4 ${
                           showCustomPeopleInput
                             ? 'bg-emerald-50/50 border-emerald-500 text-emerald-600'
                             : 'bg-white border-slate-300 text-slate-800 hover:border-emerald-500 hover:text-emerald-500'
@@ -421,7 +421,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       key={item}
                       type="button"
                       onClick={() => setFormData(p => ({ ...p, cookingMethod: item }))}
-                      className={`py-3 px-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                      className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                         formData.cookingMethod === item
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -444,7 +444,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       key={c}
                       type="button"
                       onClick={() => setFormData(p => ({ ...p, calorieLevel: c }))}
-                      className={`py-3 px-4 border-2 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest text-center ${
+                      className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                         formData.calorieLevel === c
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
@@ -467,7 +467,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       key={s}
                       type="button"
                       onClick={() => setFormData(p => ({ ...p, skillLevel: s }))}
-                      className={`py-3 px-6 border-2 rounded-2xl transition-all text-sm font-black uppercase tracking-tight text-left flex justify-between items-center ${
+                      className={`py-3 px-6 border-2 rounded-2xl transition-all text-[16px] leading-5 font-black uppercase tracking-tight text-left flex justify-between items-center ${
                         formData.skillLevel === s
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
