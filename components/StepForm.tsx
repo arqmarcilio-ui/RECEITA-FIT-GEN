@@ -467,7 +467,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       key={s}
                       type="button"
                       onClick={() => setFormData(p => ({ ...p, skillLevel: s }))}
-                      className={`py-3 px-6 border-2 rounded-2xl transition-all text-[16px] leading-5 font-black uppercase tracking-tight text-left flex justify-between items-center ${
+                      className={`py-3 px-6 border-2 rounded-2xl transition-all text-[12px] leading-5 font-black uppercase tracking-wider text-left flex justify-between items-center ${
                         formData.skillLevel === s
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
                           : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
