@@ -36,3 +36,8 @@ signing-key-info.*
 *.key
 serviceAccount*.json
 firebase-admin*.json
+
+# Android Release Artifacts
+*.aab
+*.apk
+release/
