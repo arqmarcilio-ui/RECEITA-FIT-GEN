@@ -1,11 +1,27 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RecipeResult, DietaryFilter } from '../types';
+import { RecipeResult, DietaryFilter, resolveRecipeHistoryType } from '../types';
 import { Language, translations } from '../translations';
 import { ArrowLeft, Clock, Flame, History, Search, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { db, collection, query, orderBy, limit, onSnapshot } from '../firebase';
 
 export type HistoryTab = 'mine' | 'all' | 'profile';
+
+export type HistoryProfileFilter =
+  | 'Todos os perfis'
+  | DietaryFilter.VEGANO
+  | DietaryFilter.VEGETARIANA
+  | DietaryFilter.SEM_LACTOSE
+  | DietaryFilter.SEM_GLUTEN
+  | DietaryFilter.SEM_ACUCAR;
+
+export type HistoryTypeFilter =
+  | 'Todos os tipos'
+  | 'Café da manhã'
+  | 'Almoço'
+  | 'Jantar'
+  | 'Sobremesa'
+  | 'Bebida';
 
 interface HistoryListProps {
   onSelect: (r: RecipeResult) => void;
@@ -14,17 +30,79 @@ interface HistoryListProps {
   initialTab?: HistoryTab;
 }
 
-const PROFILE_OPTIONS: DietaryFilter[] = [
+export const ALL_PROFILES_OPTION: HistoryProfileFilter = 'Todos os perfis';
+export const ALL_TYPES_OPTION: HistoryTypeFilter = 'Todos os tipos';
+
+export const PROFILE_FILTER_OPTIONS: HistoryProfileFilter[] = [
+  ALL_PROFILES_OPTION,
   DietaryFilter.VEGANO,
   DietaryFilter.VEGETARIANA,
-  DietaryFilter.LOW_CARB,
   DietaryFilter.SEM_LACTOSE,
   DietaryFilter.SEM_GLUTEN,
   DietaryFilter.SEM_ACUCAR,
-  DietaryFilter.SEM_RESTRICAO,
 ];
 
-const PROFILE_STORAGE_KEY = 'fit_gen_hist_profile_filters';
+export const TYPE_FILTER_OPTIONS: HistoryTypeFilter[] = [
+  ALL_TYPES_OPTION,
+  'Café da manhã',
+  'Almoço',
+  'Jantar',
+  'Sobremesa',
+  'Bebida',
+];
+
+export const HISTORY_FILTERS_STORAGE_KEY = 'fit_gen_hist_filters';
+
+export interface PersistedHistoryFilters {
+  profile: HistoryProfileFilter;
+  type: HistoryTypeFilter;
+}
+
+export function loadPersistedHistoryFilters(): PersistedHistoryFilters {
+  try {
+    const saved = localStorage.getItem(HISTORY_FILTERS_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const validProfile = PROFILE_FILTER_OPTIONS.includes(parsed?.profile)
+        ? (parsed.profile as HistoryProfileFilter)
+        : ALL_PROFILES_OPTION;
+      const validType = TYPE_FILTER_OPTIONS.includes(parsed?.type)
+        ? (parsed.type as HistoryTypeFilter)
+        : ALL_TYPES_OPTION;
+      return { profile: validProfile, type: validType };
+    }
+  } catch (e) {
+    console.warn('Erro ao carregar filtros persistidos do histórico:', e);
+  }
+  return { profile: ALL_PROFILES_OPTION, type: ALL_TYPES_OPTION };
+}
+
+export function filterPublicRecipesByProfileAndType(
+  recipes: RecipeResult[],
+  selectedProfile: HistoryProfileFilter,
+  selectedType: HistoryTypeFilter
+): RecipeResult[] {
+  return recipes.filter(r => {
+    // 1. Filtro de Perfil Alimentar (baseado estritamente no campo estruturado dietaryFilters)
+    if (selectedProfile !== ALL_PROFILES_OPTION) {
+      const filters = Array.isArray(r.dietaryFilters) ? r.dietaryFilters : [];
+      const matchesProfile = filters.some(
+        rf => String(rf).trim().toLowerCase() === String(selectedProfile).trim().toLowerCase()
+      );
+      if (!matchesProfile) return false;
+    }
+
+    // 2. Filtro de Tipo / Momento (baseado estritamente em metadados estruturados: historyType -> mealType -> preparationCategory)
+    if (selectedType !== ALL_TYPES_OPTION) {
+      const recipeType = resolveRecipeHistoryType(r);
+      if (!recipeType) return false;
+      const matchesType = recipeType.trim().toLowerCase() === selectedType.trim().toLowerCase();
+      if (!matchesType) return false;
+    }
+
+    return true;
+  });
+}
 
 const HistoryList: React.FC<HistoryListProps> = ({ 
   onSelect, 
@@ -45,21 +123,17 @@ const HistoryList: React.FC<HistoryListProps> = ({
   const [publicRecipes, setPublicRecipes] = useState<RecipeResult[]>([]);
   const [loadingPublic, setLoadingPublic] = useState(true);
 
-  // 3. Perfis selecionados para a aba 'Por perfil' (Persistência local)
-  const [selectedProfiles, setSelectedProfiles] = useState<DietaryFilter[]>(() => {
+  // 3. Filtros selecionados para a aba 'Por Perfil / Tipo' (Persistência local em fit_gen_hist_filters)
+  const [filters, setFilters] = useState<PersistedHistoryFilters>(() => loadPersistedHistoryFilters());
+
+  const saveFilters = (next: PersistedHistoryFilters) => {
+    setFilters(next);
     try {
-      const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-      }
+      localStorage.setItem(HISTORY_FILTERS_STORAGE_KEY, JSON.stringify(next));
     } catch (e) {
-      console.warn('Erro ao carregar filtros de perfil persistidos:', e);
+      console.warn('Erro ao salvar filtros do histórico:', e);
     }
-    return [];
-  });
+  };
 
   // Carrega histórico local
   useEffect(() => {
@@ -102,47 +176,32 @@ const HistoryList: React.FC<HistoryListProps> = ({
     return () => unsubscribe();
   }, []);
 
-  // Alterna perfil com suporte a seleção múltipla (lógica AND) e isolamento de "Sem Restrição"
-  const toggleProfile = (profile: DietaryFilter) => {
-    setSelectedProfiles((prev) => {
-      let next: DietaryFilter[];
-
-      if (profile === DietaryFilter.SEM_RESTRICAO) {
-        // Se 'Sem Restrição' for clicado:
-        // se já estava ativo, remove; se não estava, opera sozinho (desmarca filtros específicos)
-        next = prev.includes(DietaryFilter.SEM_RESTRICAO) ? [] : [DietaryFilter.SEM_RESTRICAO];
-      } else {
-        // Se um perfil específico for clicado:
-        // desmarca automaticamente 'Sem Restrição'
-        const base = prev.filter(p => p !== DietaryFilter.SEM_RESTRICAO);
-        if (base.includes(profile)) {
-          next = base.filter(p => p !== profile);
-        } else {
-          next = [...base, profile];
-        }
-      }
-
-      try {
-        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(next));
-      } catch (e) {
-        console.warn('Erro ao salvar filtros de perfil:', e);
-      }
-
-      return next;
+  const selectProfile = (profile: HistoryProfileFilter) => {
+    saveFilters({
+      ...filters,
+      profile
     });
   };
 
-  // Limpa todos os filtros selecionados
-  const clearProfiles = () => {
-    setSelectedProfiles([]);
-    try {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify([]));
-    } catch (e) {
-      console.warn('Erro ao limpar filtros de perfil:', e);
-    }
+  const selectType = (type: HistoryTypeFilter) => {
+    saveFilters({
+      ...filters,
+      type
+    });
   };
 
-  // Filtra receitas da aba ativa
+  // Limpa os filtros de Perfil e Tipo (retornando para 'Todos os perfis' e 'Todos os tipos')
+  const clearFilters = () => {
+    saveFilters({
+      profile: ALL_PROFILES_OPTION,
+      type: ALL_TYPES_OPTION
+    });
+  };
+
+  const hasActiveFilter =
+    filters.profile !== ALL_PROFILES_OPTION || filters.type !== ALL_TYPES_OPTION;
+
+  // Filtra receitas da aba ativa em memória (instantâneo)
   const displayedRecipes = useMemo(() => {
     let sourceList: RecipeResult[] = [];
 
@@ -151,22 +210,11 @@ const HistoryList: React.FC<HistoryListProps> = ({
     } else if (activeTab === 'all') {
       sourceList = publicRecipes;
     } else if (activeTab === 'profile') {
-      // Se nenhum perfil foi selecionado, não exibe lista
-      if (selectedProfiles.length === 0) {
-        return [];
-      }
-
-      // Aplica lógica AND sobre as receitas públicas
-      // Receitas antigas sem metadados estruturados (dietaryFilters ausente ou vazio)
-      // são tratadas como desconhecidas e não incluídas em filtros específicos
-      sourceList = publicRecipes.filter(r => {
-        const filters = Array.isArray(r.dietaryFilters) ? r.dietaryFilters : [];
-        if (filters.length === 0) return false;
-
-        return selectedProfiles.every(selected =>
-          filters.some(rf => String(rf).trim().toLowerCase() === String(selected).trim().toLowerCase())
-        );
-      });
+      sourceList = filterPublicRecipesByProfileAndType(
+        publicRecipes,
+        filters.profile,
+        filters.type
+      );
     }
 
     // Aplica filtro por busca textual de título se houver
@@ -176,7 +224,7 @@ const HistoryList: React.FC<HistoryListProps> = ({
     }
 
     return sourceList;
-  }, [activeTab, myRecipes, publicRecipes, selectedProfiles, searchTerm]);
+  }, [activeTab, myRecipes, publicRecipes, filters.profile, filters.type, searchTerm]);
 
   const isLoading = activeTab === 'mine' ? loadingMine : loadingPublic;
 
@@ -236,41 +284,72 @@ const HistoryList: React.FC<HistoryListProps> = ({
         </div>
       </div>
 
-      {/* Seção da Aba 'Por perfil': Chips de seleção e Limpar Filtros */}
+      {/* Seção da Aba 'Por Perfil / Tipo': Duas sequências (Perfil Alimentar e Tipo / Momento) + Limpar Filtros */}
       {activeTab === 'profile' && (
-        <div className="px-6 sm:px-8 pb-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-              {t.dietaryProfilesLabel}
-            </span>
-            {selectedProfiles.length > 0 && (
-              <button
-                onClick={clearProfiles}
-                className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1 active:scale-95"
-              >
-                <X className="w-3 h-3" />
-                {t.clearFilters}
-              </button>
-            )}
+        <div className="px-6 sm:px-8 pb-4 space-y-4">
+          {/* Sequência 1: PERFIL ALIMENTAR */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {t.dietaryProfilesLabel}
+              </span>
+              {hasActiveFilter && (
+                <button
+                  onClick={clearFilters}
+                  className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1 active:scale-95"
+                >
+                  <X className="w-3 h-3" />
+                  {t.clearFilters}
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {PROFILE_FILTER_OPTIONS.map((profile) => {
+                const isSelected = filters.profile === profile;
+                return (
+                  <button
+                    key={profile}
+                    onClick={() => selectProfile(profile)}
+                    className={`px-3 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all border-2 active:scale-95 ${
+                      isSelected
+                        ? 'bg-emerald-500 text-white border-emerald-500 shadow-md'
+                        : 'bg-slate-50 text-slate-600 border-slate-100 hover:border-slate-200'
+                    }`}
+                  >
+                    {profile}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {PROFILE_OPTIONS.map((profile) => {
-              const isSelected = selectedProfiles.includes(profile);
-              return (
-                <button
-                  key={profile}
-                  onClick={() => toggleProfile(profile)}
-                  className={`px-3 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all border-2 active:scale-95 ${
-                    isSelected
-                      ? 'bg-emerald-500 text-white border-emerald-500 shadow-md'
-                      : 'bg-slate-50 text-slate-600 border-slate-100 hover:border-slate-200'
-                  }`}
-                >
-                  {profile}
-                </button>
-              );
-            })}
+          {/* Sequência 2: TIPO / MOMENTO */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {(t as any).historyTypeLabel || 'TIPO / MOMENTO'}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {TYPE_FILTER_OPTIONS.map((typeOption) => {
+                const isSelected = filters.type === typeOption;
+                return (
+                  <button
+                    key={typeOption}
+                    onClick={() => selectType(typeOption)}
+                    className={`px-3 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all border-2 active:scale-95 ${
+                      isSelected
+                        ? 'bg-emerald-500 text-white border-emerald-500 shadow-md'
+                        : 'bg-slate-50 text-slate-600 border-slate-100 hover:border-slate-200'
+                    }`}
+                  >
+                    {typeOption}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -293,15 +372,7 @@ const HistoryList: React.FC<HistoryListProps> = ({
       <div className="flex-1 overflow-y-auto px-6 sm:px-8 space-y-4">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400 font-black uppercase tracking-widest text-xs">
-            <p>{t.loading}</p>
-          </div>
-        ) : activeTab === 'profile' && selectedProfiles.length === 0 ? (
-          // Mensagem simples quando nenhum perfil está selecionado
-          <div className="flex flex-col items-center justify-center py-20 px-6 text-center text-slate-400 font-black uppercase tracking-widest text-xs space-y-4">
-            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
-              <History className="w-7 h-7 opacity-20" />
-            </div>
-            <p className="max-w-xs">{t.selectProfilePrompt}</p>
+            <p>{(t as any).loading || 'Carregando...'}</p>
           </div>
         ) : displayedRecipes.length === 0 ? (
           // Mensagem de lista vazia
@@ -321,65 +392,73 @@ const HistoryList: React.FC<HistoryListProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {displayedRecipes.map((r, i) => (
-              <motion.div 
-                key={r.id || r.tempId || i} 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.03, 0.4), duration: 0.3 }}
-                onClick={() => onSelect(r)}
-                className="bg-white p-4 rounded-[2.5rem] border-2 border-slate-50 shadow-sm flex flex-col gap-3 cursor-pointer active:scale-[0.98] transition-all group"
-              >
-                <div className="relative aspect-square w-full rounded-[2rem] overflow-hidden shadow-md">
-                  <img 
-                    src={r.imageUrl || `https://picsum.photos/seed/${r.id || r.tempId}/400/400`} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                    alt={r.title} 
-                    loading="lazy"
-                    decoding="async"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
+            {displayedRecipes.map((r, i) => {
+              const resolvedType = resolveRecipeHistoryType(r);
+              return (
+                <motion.div 
+                  key={r.id || r.tempId || i} 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(i * 0.03, 0.4), duration: 0.3 }}
+                  onClick={() => onSelect(r)}
+                  className="bg-white p-4 rounded-[2.5rem] border-2 border-slate-50 shadow-sm flex flex-col gap-3 cursor-pointer active:scale-[0.98] transition-all group"
+                >
+                  <div className="relative aspect-square w-full rounded-[2rem] overflow-hidden shadow-md">
+                    <img 
+                      src={r.imageUrl || `https://picsum.photos/seed/${r.id || r.tempId}/400/400`} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      alt={r.title} 
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
 
-                <div className="space-y-2 px-1 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h4 className="font-black text-sm text-slate-900 uppercase leading-tight group-hover:text-emerald-500 transition-colors line-clamp-2">
-                      {r.title}
-                    </h4>
+                  <div className="space-y-2 px-1 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h4 className="font-black text-sm text-slate-900 uppercase leading-tight group-hover:text-emerald-500 transition-colors line-clamp-2">
+                        {r.title}
+                      </h4>
 
-                    {/* Chips sutis com perfis alimentares quando existirem */}
-                    {r.dietaryFilters && r.dietaryFilters.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1.5">
-                        {r.dietaryFilters.slice(0, 2).map((df, idx) => (
-                          <span 
-                            key={idx} 
-                            className="text-[7px] font-black uppercase px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-md"
-                          >
-                            {df}
-                          </span>
-                        ))}
-                        {r.dietaryFilters.length > 2 && (
-                          <span className="text-[7px] font-black uppercase px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-md">
-                            +{r.dietaryFilters.length - 2}
-                          </span>
-                        )}
+                      {/* Chips sutis com perfis alimentares e tipo quando existirem */}
+                      {((r.dietaryFilters && r.dietaryFilters.length > 0) || resolvedType) && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {r.dietaryFilters && r.dietaryFilters.slice(0, 2).map((df, idx) => (
+                            <span 
+                              key={idx} 
+                              className="text-[7px] font-black uppercase px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-md"
+                            >
+                              {df}
+                            </span>
+                          ))}
+                          {r.dietaryFilters && r.dietaryFilters.length > 2 && (
+                            <span className="text-[7px] font-black uppercase px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-md">
+                              +{r.dietaryFilters.length - 2}
+                            </span>
+                          )}
+                          {resolvedType && (
+                            <span className="text-[7px] font-black uppercase px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded-md">
+                              {resolvedType}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between opacity-60 pt-1">
+                      <div className="flex items-center gap-1 text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                        <Flame className="w-3 h-3 text-orange-500" />
+                        {r.macros?.calories ? r.macros.calories.split(' ')[0] : ''}
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between opacity-60 pt-1">
-                    <div className="flex items-center gap-1 text-[8px] font-black text-slate-400 uppercase tracking-widest">
-                      <Flame className="w-3 h-3 text-orange-500" />
-                      {r.macros?.calories ? r.macros.calories.split(' ')[0] : ''}
-                    </div>
-                    <div className="flex items-center gap-1 text-[8px] font-black text-slate-400 uppercase tracking-widest">
-                      <Clock className="w-3 h-3 text-emerald-500" />
-                      {r.estimatedTime}
+                      <div className="flex items-center gap-1 text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                        <Clock className="w-3 h-3 text-emerald-500" />
+                        {r.estimatedTime}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>

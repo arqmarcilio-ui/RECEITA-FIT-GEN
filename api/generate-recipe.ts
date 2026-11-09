@@ -602,6 +602,29 @@ Se a restrição for Vegano: use exclusivamente ingredientes 100% vegetais. É e
     } else {
       recipeData.dietaryFilters = finalDietaryFilters;
     }
+
+    const prep = String(prefs.preparationCategory || '').trim();
+    const meal = String(prefs.mealType || '').trim();
+    if (prep === 'Sobremesa' || meal === 'Sobremesa') {
+      recipeData.historyType = 'Sobremesa';
+    } else if (prep === 'Bebida' || meal === 'Bebida') {
+      recipeData.historyType = 'Bebida';
+    } else if (prep === 'Algo específico' || meal === 'Prato Específico' || meal === 'Algo específico') {
+      recipeData.historyType = 'Algo específico';
+    } else if (meal === 'Café da Manhã' || meal.toLowerCase() === 'café da manhã') {
+      recipeData.historyType = 'Café da manhã';
+    } else if (meal === 'Almoço' || meal.toLowerCase() === 'almoço') {
+      recipeData.historyType = 'Almoço';
+    } else if (meal === 'Jantar' || meal.toLowerCase() === 'jantar') {
+      recipeData.historyType = 'Jantar';
+    } else if (meal === 'Lanche' || meal.toLowerCase() === 'lanche') {
+      recipeData.historyType = 'Lanche';
+    }
+    recipeData.mealType = prefs.mealType;
+    if (prefs.preparationCategory) {
+      recipeData.preparationCategory = prefs.preparationCategory;
+    }
+
     recipeData.timings = {
       geminiMs: geminiDuration,
       validationMs: valDuration,

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { DietaryFilter, NutritionalGoal, UserPreferences, RecipeResult, createInitialFormState } from './types';
+import { DietaryFilter, NutritionalGoal, UserPreferences, RecipeResult, createInitialFormState, resolveHistoryTypeFromPrefs } from './types';
 import { generateRecipe } from './services/geminiService';
 import { safeSaveToLocalStorage } from './services/storageService';
 import SplashScreen from './components/SplashScreen';
@@ -475,6 +475,13 @@ const App: React.FC = () => {
         recipe.dietaryFilters = baseFilters;
       }
 
+      const resolvedHistoryType = resolveHistoryTypeFromPrefs(data);
+      if (resolvedHistoryType) {
+        recipe.historyType = resolvedHistoryType;
+      }
+      recipe.mealType = data.mealType;
+      recipe.preparationCategory = data.preparationCategory;
+
       // 1. Cria a referência do documento público antecipadamente (0ms)
       const publicDocRef = doc(collection(db, 'public_recipes'));
       recipe.publicDocId = publicDocRef.id;
@@ -496,6 +503,9 @@ const App: React.FC = () => {
       const publicSavePromise = setDoc(publicDocRef, {
         ...recipe,
         dietaryFilters: recipe.dietaryFilters,
+        ...(recipe.historyType ? { historyType: recipe.historyType } : {}),
+        mealType: data.mealType,
+        preparationCategory: data.preparationCategory,
         createdAt: serverTimestamp(),
         authorId: user?.uid,
         authorEmail: user?.email,
