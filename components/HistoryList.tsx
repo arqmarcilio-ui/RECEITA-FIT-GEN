@@ -231,7 +231,7 @@ const HistoryList: React.FC<HistoryListProps> = ({
   return (
     <div className="min-h-screen bg-white flex flex-col pb-32">
       {/* Header */}
-      <div className="px-6 sm:px-8 pt-16 pb-4 space-y-5">
+      <div className="px-6 sm:px-8 pt-6 pb-4 space-y-5">
         <button 
           onClick={onBack}
           className="flex items-center gap-2 p-3 bg-slate-50 text-slate-900 rounded-full hover:bg-slate-100 transition-all w-fit group active:scale-95"
@@ -357,13 +357,13 @@ const HistoryList: React.FC<HistoryListProps> = ({
       {/* Barra de Pesquisa */}
       <div className="px-6 sm:px-8 pb-6">
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
           <input 
             type="text"
             placeholder={t.searchPlaceholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-transparent focus:border-emerald-500/20 focus:bg-white rounded-2xl text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-400 placeholder:font-black placeholder:uppercase placeholder:tracking-widest placeholder:text-[10px]"
+            className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-transparent focus:border-slate-200 focus:bg-white rounded-2xl text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-400 placeholder:font-black placeholder:uppercase placeholder:tracking-widest placeholder:text-[10px]"
           />
         </div>
       </div>

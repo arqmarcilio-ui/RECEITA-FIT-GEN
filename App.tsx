@@ -571,32 +571,38 @@ const App: React.FC = () => {
 
   return (
     <div className="max-w-xl mx-auto min-h-screen bg-white relative font-sans selection:bg-emerald-100">
-     {/* Header with Logout */}
-<div className="absolute top-6 right-6 z-50 flex flex-col items-end gap-2">
+      {/* Header with Logout (exibido na tela inicial) */}
+      {view === 'splash' && (
+        <div className="absolute top-3 right-3 z-50 flex flex-col items-end gap-2">
+          <button 
+            onClick={() => signOut(auth)}
+            className="flex items-center gap-2 px-3.5 py-2 bg-white/90 backdrop-blur-md text-slate-600 hover:bg-rose-50 hover:text-rose-500 rounded-full shadow-sm transition-all group"
+            title={t.signOut}
+          >
+            <span className="text-[10px] font-black uppercase tracking-widest">{t.signOut}</span>
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
 
-  <button 
-    onClick={() => signOut(auth)}
-    className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-full transition-all group"
-    title={t.signOut}
-  >
-    <span className="text-[10px] font-black uppercase tracking-widest">{t.signOut}</span>
-    <LogOut className="w-4 h-4" />
-  </button>
-
-  {user?.email === 'arqmarcilio@gmail.com' && (
-    <button
-      onClick={() => setView('adminHist')}
-      className="px-4 py-2 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest"
-    >
-      Admin
-    </button>
-  )}
-
-</div>
+          {user?.email === 'arqmarcilio@gmail.com' && (
+            <button
+              onClick={() => setView('adminHist')}
+              className="px-3.5 py-2 bg-slate-900/90 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm"
+            >
+              Admin
+            </button>
+          )}
+        </div>
+      )}
 
       {view === 'splash' && (
         <SplashScreen 
           language={language} 
+          userUid={user?.uid}
+          userEmail={user?.email}
+          onSelectRecipe={(r) => {
+            setResult(r);
+            setView('result');
+          }}
           onStart={() => {
             resetFormState();
             setView('form');

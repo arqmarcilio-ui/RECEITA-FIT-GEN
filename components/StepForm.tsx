@@ -132,7 +132,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
     const progress = Math.round((step / totalSteps) * 100);
 
     return (
-      <div className="px-8 pt-6 pb-3 space-y-1 flex-shrink-0">
+      <div className="px-8 pt-5 pb-3 border-b border-slate-100 flex-shrink-0">
         <div className="flex justify-between items-end">
           <div className="space-y-0">
             <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
@@ -142,17 +142,9 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               {t.customize}
             </h2>
           </div>
-          <div className="text-emerald-500 font-black text-lg">
+          <div className="text-emerald-500 font-black text-lg leading-none">
             {progress}%
           </div>
-        </div>
-
-        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            className="h-full bg-emerald-500 rounded-full"
-          />
         </div>
       </div>
     );
@@ -190,7 +182,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                     className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                       formData.dietaryFilters.includes(f)
                         ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                        : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                        : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     {(t.dietaryFilters as any)[f]}
@@ -203,7 +195,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                     formData.dietaryFilters.includes(DietaryFilter.SEM_RESTRICAO)
                       ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                      : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                      : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   {(t.dietaryFilters as any)[DietaryFilter.SEM_RESTRICAO]}
@@ -229,7 +221,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                         formData.nutritionalGoal === goal
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                          : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                          : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       {(t.nutritionalGoals as any)[goal]}
@@ -242,7 +234,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                     className={`col-span-2 py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                       formData.nutritionalGoal === ''
                         ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                        : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                        : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     {t.noNutritionalGoal}
@@ -276,7 +268,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       className={`py-3.5 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                         formData.preparationCategory === cat
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                          : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                          : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       {(t.preparationCategories as any)[cat]}
@@ -299,7 +291,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                           className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                             formData.mealType === m
                               ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                              : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                              : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                           }`}
                         >
                           {(t.mealTypes as any)[m]}
@@ -317,7 +309,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
 
                     <input
                       placeholder={t.dishPlaceholder}
-                      className="w-full p-3.5 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
+                      className="w-full p-3.5 bg-white border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-slate-400 focus:outline-none transition-all"
                       value={formData.dishType}
                       onChange={(e) =>
                         setFormData(p => ({ ...p, dishType: e.target.value }))
@@ -349,7 +341,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                           className={`flex-1 py-3.5 border-2 rounded-xl transition-all font-black text-[14px] leading-4 ${
                             formData.peopleCount === num && !showCustomPeopleInput
                               ? 'bg-emerald-50/50 border-emerald-500 text-emerald-600'
-                              : 'bg-white border-slate-300 text-slate-800 hover:border-emerald-500 hover:text-emerald-500'
+                              : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300'
                           }`}
                         >
                           {num}
@@ -362,7 +354,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                         className={`flex-1 py-3.5 border-2 rounded-xl transition-all font-black text-[14px] leading-4 ${
                           showCustomPeopleInput
                             ? 'bg-emerald-50/50 border-emerald-500 text-emerald-600'
-                            : 'bg-white border-slate-300 text-slate-800 hover:border-emerald-500 hover:text-emerald-500'
+                            : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300'
                         }`}
                       >
                         +
@@ -385,7 +377,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                               setFormData(p => ({ ...p, peopleCount: parsed }));
                             }
                           }}
-                          className="w-full p-3.5 bg-white border-2 border-slate-300 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all"
+                          className="w-full p-3.5 bg-white border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-slate-400 focus:outline-none transition-all"
                         />
                       </div>
                     )}
@@ -424,7 +416,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                         formData.cookingMethod === item
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                          : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                          : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       {item}
@@ -447,7 +439,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
                         formData.calorieLevel === c
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                          : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                          : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       {(t.calorieLevels as any)[c]}
@@ -470,7 +462,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                       className={`py-3 px-6 border-2 rounded-2xl transition-all text-[12px] leading-5 font-black uppercase tracking-wider text-left flex justify-between items-center ${
                         formData.skillLevel === s
                           ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                          : 'bg-white text-slate-800 border-slate-300 hover:border-emerald-500 hover:text-emerald-500'
+                          : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <span>{(t.skillLevels as any)[s]}</span>
@@ -499,7 +491,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   <textarea
                     rows={2}
                     placeholder={t.ingredientsPlaceholder}
-                    className="w-full p-5 bg-white border-2 border-slate-300 rounded-[2rem] text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all resize-none"
+                    className="w-full p-5 bg-white border-2 border-slate-200 rounded-[2rem] text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-slate-400 focus:outline-none transition-all resize-none"
                     value={formData.ingredients}
                     onChange={e => setFormData(p => ({ ...p, ingredients: e.target.value }))}
                   />
@@ -513,7 +505,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
                   <textarea
                     rows={2}
                     placeholder={t.avoidPlaceholder}
-                    className="w-full p-5 bg-white border-2 border-slate-300 rounded-[2rem] text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:outline-none transition-all resize-none"
+                    className="w-full p-5 bg-white border-2 border-slate-200 rounded-[2rem] text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-slate-400 focus:outline-none transition-all resize-none"
                     value={formData.dispensableIngredients}
                     onChange={e => setFormData(p => ({ ...p, dispensableIngredients: e.target.value }))}
                   />

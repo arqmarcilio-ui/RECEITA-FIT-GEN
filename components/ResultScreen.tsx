@@ -228,80 +228,77 @@ Gerado por Receita Fit Gen`;
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-32">
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-8 py-6 flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center gap-2 p-3 bg-slate-100 text-slate-900 rounded-full hover:bg-slate-200 transition-all group">
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-[10px] font-black uppercase tracking-widest pr-1">{t.back}</span>
-        </button>
-        <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">{t.recipeResult}</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={toggleFavorite}
-            className={`p-3 rounded-full transition-all ${isFavorite ? 'bg-rose-50 text-rose-500' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}
-          >
-            <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
-          </button>
-          <button onClick={handleShare} className="p-3 bg-slate-100 text-slate-900 rounded-full hover:bg-slate-200 transition-all">
-            <Share2 className="w-5 h-5" />
-          </button>
-        </div>
+      <div className="relative w-full aspect-[4/3] sm:aspect-video overflow-hidden rounded-b-[2.5rem] shadow-lg bg-slate-100">
+        {currentImageUrl && imageState === 'ready' ? (
+          <img
+            src={`${currentImageUrl}${currentImageUrl.includes('?') ? '&' : '?'}v=${recipe.tempId || recipe.id || Date.now()}`}
+            alt={recipe.title}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={() => setImageState('error')}
+          />
+        ) : imageState === 'loading' ? (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-500 text-sm font-bold px-6 text-center space-y-3 animate-pulse">
+            <UtensilsCrossed className="w-8 h-8 text-emerald-500 animate-bounce" />
+            <span>🍽️ Gerando imagem do prato...</span>
+          </div>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-600 p-6 text-center border-b border-slate-200 space-y-2">
+            <UtensilsCrossed className="w-7 h-7 text-slate-400 mb-1" />
+            <p className="text-xs font-bold text-slate-700">
+              Foto do prato não disponível no momento.
+            </p>
+            <p className="text-[11px] text-slate-400 max-w-xs">
+              Sua receita saudável está pronta abaixo!
+            </p>
+            <button
+              type="button"
+              onClick={handleRetryImage}
+              disabled={isRetryingImage}
+              className="mt-2 inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white text-xs font-black uppercase tracking-wider rounded-full shadow-md transition-all cursor-pointer disabled:opacity-50"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${isRetryingImage ? 'animate-spin' : ''}`} />
+              Tentar gerar imagem novamente
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="px-8 space-y-10">
-        <div className="space-y-6">
-          <div className="relative rounded-[2.5rem] overflow-hidden aspect-video shadow-2xl">
-            {currentImageUrl && imageState === 'ready' ? (
-              <img
-                src={`${currentImageUrl}${currentImageUrl.includes('?') ? '&' : '?'}v=${recipe.tempId || recipe.id || Date.now()}`}
-                alt={recipe.title}
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-                onError={() => setImageState('error')}
-              />
-            ) : imageState === 'loading' ? (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-500 text-sm font-bold px-6 text-center space-y-3 animate-pulse">
-                <UtensilsCrossed className="w-8 h-8 text-emerald-500 animate-bounce" />
-                <span>🍽️ Gerando imagem do prato...</span>
-              </div>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-600 p-6 text-center border-2 border-dashed border-slate-200 space-y-2">
-                <UtensilsCrossed className="w-7 h-7 text-slate-400 mb-1" />
-                <p className="text-xs font-bold text-slate-700">
-                  Foto do prato não disponível no momento.
-                </p>
-                <p className="text-[11px] text-slate-400 max-w-xs">
-                  Sua receita saudável está pronta abaixo!
-                </p>
-                <button
-                  type="button"
-                  onClick={handleRetryImage}
-                  disabled={isRetryingImage}
-                  className="mt-2 inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white text-xs font-black uppercase tracking-wider rounded-full shadow-md transition-all cursor-pointer disabled:opacity-50"
-                >
-                  <RotateCw className={`w-3.5 h-3.5 ${isRetryingImage ? 'animate-spin' : ''}`} />
-                  Tentar gerar imagem novamente
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            <h1 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tighter">
+      <div className="px-6 sm:px-8 pt-6 space-y-8">
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-2xl font-black text-slate-900 uppercase leading-tight tracking-tighter flex-1">
               {recipe.title}
             </h1>
-            <p className="text-slate-400 font-semibold text-sm tracking-tight leading-relaxed">
-              {recipe.description}
-            </p>
-            {recipe.estimatedCost && (
-              <p className="text-emerald-500 font-bold text-sm uppercase tracking-tight leading-relaxed">
-                💰 Custo estimado: {recipe.estimatedCost}
-              </p>
-            )}
-
-            <p className="text-sky-500 font-bold text-sm uppercase tracking-tight leading-relaxed">
-  🍽️ Porções: {recipe.peopleCount || 1}
-</p>
+            <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
+              <button
+                onClick={toggleFavorite}
+                title="Favoritar"
+                className={`p-2.5 rounded-full transition-all active:scale-95 ${isFavorite ? 'bg-rose-50 text-rose-500' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+              >
+                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+              </button>
+              <button
+                onClick={handleShare}
+                title="Compartilhar"
+                className="p-2.5 bg-slate-100 text-slate-700 rounded-full hover:bg-slate-200 transition-all active:scale-95"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
+          <p className="text-slate-400 font-semibold text-sm tracking-tight leading-relaxed">
+            {recipe.description}
+          </p>
+          {recipe.estimatedCost && (
+            <p className="text-emerald-500 font-bold text-sm uppercase tracking-tight leading-relaxed">
+              💰 Custo estimado: {recipe.estimatedCost}
+            </p>
+          )}
+
+          <p className="text-sky-500 font-bold text-sm uppercase tracking-tight leading-relaxed">
+            🍽️ Porções: {recipe.peopleCount || 1}
+          </p>
         </div>
 
         <div className="grid grid-cols-4 gap-3">

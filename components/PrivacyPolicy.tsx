@@ -184,8 +184,8 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack, contactEmail }) =
             Em conformidade com a LGPD, o usuário pode solicitar informações, correção ou exclusão de seus dados pessoais.
           </p>
           
-          <div className="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-5 space-y-3">
-            <h4 className="font-black text-emerald-950 text-sm uppercase tracking-wide">
+          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-3">
+            <h4 className="font-black text-slate-900 text-sm uppercase tracking-wide">
               Solicitação de Exclusão de Conta e Dados
             </h4>
             <p className="text-slate-700 text-xs leading-relaxed">

@@ -20,7 +20,7 @@
 }
 
 .btn-option-inactive {
-  @apply bg-white border-slate-100 text-slate-400 hover:border-brand-emerald hover:text-brand-emerald;
+  @apply bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700;
 }
 
 .btn-option-active {

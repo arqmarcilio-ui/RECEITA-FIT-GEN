@@ -1,6 +1,7 @@
 import React from 'react';
 import { Language, translations } from '../translations';
 import { LogIn, AlertCircle } from 'lucide-react';
+import { TopRecipeShowcase } from './SplashScreen';
 
 interface LoginScreenProps {
   language: Language;
@@ -35,7 +36,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
 
   if (showInviteCode) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-white relative overflow-hidden">
+      <div className="max-w-xl mx-auto flex flex-col items-center justify-center min-h-[100dvh] p-8 text-center bg-white relative overflow-hidden">
         <div className="w-full max-w-sm relative z-10 flex flex-col items-center">
           <div className="space-y-4 mb-10">
             <h1 className="text-4xl font-black text-slate-900 leading-none tracking-tighter uppercase">
@@ -71,7 +72,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               disabled={isLoading}
-              className="w-full px-6 py-4 border-2 border-slate-100 focus:border-emerald-500 focus:outline-none rounded-2xl text-center font-black text-lg uppercase tracking-widest text-slate-800 transition-all bg-slate-50 focus:bg-white"
+              className="w-full px-6 py-4 border-2 border-slate-100 focus:border-slate-300 focus:outline-none rounded-2xl text-center font-black text-lg uppercase tracking-widest text-slate-800 transition-all bg-slate-50 focus:bg-white"
             />
 
             <button
@@ -106,35 +107,37 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-white relative overflow-hidden">
-      <div className="w-full max-w-sm relative z-10 flex flex-col items-center">
-        <div className="space-y-4 mb-16">
-          <h1 className="text-6xl font-black text-slate-900 leading-none tracking-tighter uppercase">
+    <div className="max-w-xl mx-auto flex flex-col justify-between min-h-[100dvh] text-center bg-white relative overflow-hidden">
+      <TopRecipeShowcase userEmail={userEmail} />
+
+      <div className="flex-1 flex flex-col items-center justify-center px-8 py-4 w-full max-w-sm mx-auto relative z-10">
+        <div className="space-y-3 mb-8 sm:mb-10">
+          <h1 className="text-5xl sm:text-6xl font-black text-slate-900 leading-none tracking-tighter uppercase">
             RECEITA<br/>
             <span className="text-emerald-500">FIT GEN</span>
           </h1>
-          <p className="text-slate-400 text-xs font-black uppercase tracking-[0.4em]">
+          <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.35em]">
             {t.appSubtitle}
           </p>
         </div>
 
         {error && (
-          <div className="w-full mb-8 bg-rose-50 border border-rose-100 p-5 rounded-3xl flex flex-col items-center gap-2 shadow-sm animate-in fade-in slide-in-from-bottom-4">
-            <AlertCircle className="w-8 h-8 text-rose-500 mb-2" />
-            <p className="text-rose-900 font-black text-sm uppercase tracking-widest text-center">{t.restrictedAccess}</p>
-            <p className="text-rose-700 text-xs font-medium text-center">{error}</p>
+          <div className="w-full mb-5 bg-rose-50 border border-rose-100 p-4 rounded-3xl flex flex-col items-center gap-1.5 shadow-sm animate-in fade-in slide-in-from-bottom-4">
+            <AlertCircle className="w-6 h-6 text-rose-500" />
+            <p className="text-rose-900 font-black text-xs uppercase tracking-widest text-center">{t.restrictedAccess}</p>
+            <p className="text-rose-700 text-[11px] font-medium text-center">{error}</p>
           </div>
         )}
 
-        <div className="w-full space-y-6">
-          <p className="text-slate-500 text-sm font-medium mb-4">
+        <div className="w-full space-y-4">
+          <p className="text-slate-500 text-xs font-medium">
             {isLoading ? t.verifyingAuth : t.loginToAccess}
           </p>
           
           <button 
             onClick={onLogin}
             disabled={isLoading}
-            className={`w-full py-6 flex items-center justify-center gap-3 rounded-3xl font-black text-lg uppercase tracking-widest shadow-xl transition-all ${
+            className={`w-full py-5 flex items-center justify-center gap-3 rounded-3xl font-black text-base uppercase tracking-widest shadow-xl transition-all ${
               isLoading 
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
                 : 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95'
@@ -144,7 +147,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               <div className="w-6 h-6 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
             ) : (
               <>
-                <LogIn className="w-6 h-6" />
+                <LogIn className="w-5 h-5" />
                 {t.signInWithGoogle}
               </>
             )}
@@ -152,7 +155,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
       </div>
       
-      <div className="absolute bottom-6 flex flex-col items-center gap-2 z-20">
+      <div className="pb-5 pt-2 flex flex-col items-center gap-1.5 z-20 flex-shrink-0">
         <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
           <a href="/politica-de-privacidade" className="hover:text-emerald-600 transition-colors">
             Política de Privacidade
@@ -165,8 +168,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         <div className="text-slate-300 text-[9px] font-black uppercase tracking-[0.4em]">
           {t.poweredBy}
         </div>
-        <div className="px-4 py-1.5 bg-slate-50 text-slate-400 text-[8px] font-black tracking-widest uppercase rounded-full">
-          {t.version} 2.0
+        <div className="px-4 py-1 bg-slate-50 text-slate-400 text-[8px] font-black tracking-widest uppercase rounded-full">
+          {t.version} 2.2
         </div>
       </div>
     </div>
