@@ -266,27 +266,9 @@ Gerado por Receita Fit Gen`;
 
       <div className="px-6 sm:px-8 pt-6 space-y-8">
         <div className="space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <h1 className="text-2xl font-black text-slate-900 uppercase leading-tight tracking-tighter flex-1">
-              {recipe.title}
-            </h1>
-            <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
-              <button
-                onClick={toggleFavorite}
-                title="Favoritar"
-                className={`p-2.5 rounded-full transition-all active:scale-95 ${isFavorite ? 'bg-rose-50 text-rose-500' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-              >
-                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-              </button>
-              <button
-                onClick={handleShare}
-                title="Compartilhar"
-                className="p-2.5 bg-slate-100 text-slate-700 rounded-full hover:bg-slate-200 transition-all active:scale-95"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          <h1 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tighter">
+            {recipe.title}
+          </h1>
           <p className="text-slate-400 font-semibold text-sm tracking-tight leading-relaxed">
             {recipe.description}
           </p>

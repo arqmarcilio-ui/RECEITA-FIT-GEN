@@ -132,7 +132,7 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
     const progress = Math.round((step / totalSteps) * 100);
 
     return (
-      <div className="px-8 pt-5 pb-3 border-b border-slate-100 flex-shrink-0">
+      <div className="px-8 pt-6 pb-3 space-y-1 flex-shrink-0">
         <div className="flex justify-between items-end">
           <div className="space-y-0">
             <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
@@ -142,9 +142,17 @@ const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, la
               {t.customize}
             </h2>
           </div>
-          <div className="text-emerald-500 font-black text-lg leading-none">
+          <div className="text-emerald-500 font-black text-lg">
             {progress}%
           </div>
+        </div>
+
+        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            className="h-full bg-emerald-500 rounded-full"
+          />
         </div>
       </div>
     );
