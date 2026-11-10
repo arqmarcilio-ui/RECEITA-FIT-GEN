@@ -1,4 +1,4 @@
-const CACHE_NAME = "fit-gen-cache-v2";
+const CACHE_NAME = "fit-gen-cache-v3";
 
 const STATIC_ASSETS = [
   "/",

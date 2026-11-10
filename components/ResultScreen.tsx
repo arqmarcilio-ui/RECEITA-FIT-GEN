@@ -228,12 +228,12 @@ Gerado por Receita Fit Gen`;
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-32">
-      <div className="relative w-full aspect-[4/3] sm:aspect-video overflow-hidden rounded-b-[2.5rem] shadow-lg bg-slate-100">
+      <div className="relative w-full aspect-[4/3] sm:aspect-video overflow-hidden rounded-none bg-slate-100">
         {currentImageUrl && imageState === 'ready' ? (
           <img
             src={`${currentImageUrl}${currentImageUrl.includes('?') ? '&' : '?'}v=${recipe.tempId || recipe.id || Date.now()}`}
             alt={recipe.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-none"
             referrerPolicy="no-referrer"
             onError={() => setImageState('error')}
           />
@@ -380,17 +380,17 @@ Gerado por Receita Fit Gen`;
    Receitas criadas com IA. Antes do consumo, checar ingredientes, alergias e restrições alimentares. Em caso de dúvida, consulte um médico ou um nutricionista.
   </p>
 </div>
-      <div className="fixed bottom-0 left-0 right-0 p-8 bg-white/80 backdrop-blur-md z-50">
+      <div className="fixed bottom-0 left-0 right-0 px-8 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] bg-white border-t border-slate-100 z-50">
         <div className="max-w-xl mx-auto flex gap-4">
           <button
             onClick={onBack}
-            className="flex-1 py-6 bg-slate-100 text-slate-900 rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-sm active:scale-95 transition-all"
+            className="flex-1 py-5 bg-slate-100 text-slate-900 rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-sm active:scale-95 transition-all"
           >
             {t.backToStart}
           </button>
           <button
             onClick={handleWhatsAppShare}
-            className="flex-1 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl active:scale-95 transition-all flex items-center justify-center"
+            className="flex-1 py-5 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-md active:scale-95 transition-all flex items-center justify-center"
           >
            {showShoppingList ? 'Enviar Lista por WhatsApp' : 'Enviar Receita por WhatsApp'}
           </button>

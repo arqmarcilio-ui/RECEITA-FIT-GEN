@@ -18,9 +18,9 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack, contactEmail }) =
   const emailDisplay = contactEmail || 'receitafitgen@gmail.com';
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-100">
+    <div className="min-h-screen bg-white text-slate-800 font-sans antialiased selection:bg-emerald-100">
       {/* Header Bar */}
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 py-4 sm:px-8">
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-100 px-4 py-4 sm:px-8">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-md shadow-emerald-500/20">
@@ -233,7 +233,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack, contactEmail }) =
         </section>
 
         {/* Rodapé / Data */}
-        <footer className="text-center py-6 border-t border-slate-200 text-slate-400 text-xs font-semibold space-y-2">
+        <footer className="text-center pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] bg-white border-t border-slate-200 text-slate-400 text-xs font-semibold space-y-2">
           <p>Receita Fit Gen &copy; 2026 - Todos os direitos reservados.</p>
           <p className="text-slate-500 font-bold uppercase tracking-widest text-[11px]">
             Última atualização: outubro de 2026

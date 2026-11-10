@@ -464,11 +464,11 @@ const HistoryList: React.FC<HistoryListProps> = ({
       </div>
 
       {/* Bottom Action */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 sm:p-8 bg-white/80 backdrop-blur-md z-50">
+      <div className="fixed bottom-0 left-0 right-0 px-6 sm:px-8 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] bg-white border-t border-slate-100 z-50">
         <div className="max-w-xl mx-auto">
           <button 
             onClick={onBack} 
-            className="w-full py-5 sm:py-6 bg-slate-900 text-white rounded-3xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-2xl active:scale-95 transition-all"
+            className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-md active:scale-95 transition-all"
           >
             {t.back}
           </button>

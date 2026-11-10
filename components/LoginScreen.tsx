@@ -137,7 +137,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           <button 
             onClick={onLogin}
             disabled={isLoading}
-            className={`w-full py-5 flex items-center justify-center gap-3 rounded-3xl font-black text-base uppercase tracking-widest shadow-xl transition-all ${
+            className={`w-full py-5 flex items-center justify-center gap-3 rounded-3xl font-black text-base uppercase tracking-widest shadow-md transition-all ${
               isLoading 
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
                 : 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95'
@@ -155,7 +155,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
       </div>
       
-      <div className="pb-5 pt-2 flex flex-col items-center gap-1.5 z-20 flex-shrink-0">
+      <div className="w-full bg-white pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] pt-2 flex flex-col items-center gap-1.5 z-20 flex-shrink-0">
         <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
           <a href="/politica-de-privacidade" className="hover:text-emerald-600 transition-colors">
             Política de Privacidade

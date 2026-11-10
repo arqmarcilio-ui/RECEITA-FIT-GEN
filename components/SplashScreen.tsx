@@ -187,8 +187,8 @@ export const TopRecipeShowcase: React.FC<TopRecipeShowcaseProps> = ({
   }, [localRecipes, publicRecipes, userUid, userEmail]);
 
   return (
-    <div className="w-full h-[32dvh] min-h-[190px] max-h-[270px] flex-shrink-0 overflow-hidden rounded-b-[2rem] bg-slate-100 shadow-sm">
-      <div className="grid grid-cols-3 gap-1 w-full h-full">
+    <div className="w-full h-[32dvh] min-h-[190px] max-h-[270px] flex-shrink-0 overflow-hidden rounded-none bg-white">
+      <div className="grid grid-cols-3 gap-0 w-full h-full rounded-none">
         {displayRecipes.map((recipe, idx) => {
           const isInteractive = Boolean(onSelectRecipe && recipe.ingredients && recipe.ingredients.length > 0);
           return (
@@ -199,14 +199,14 @@ export const TopRecipeShowcase: React.FC<TopRecipeShowcaseProps> = ({
                   onSelectRecipe(recipe);
                 }
               }}
-              className={`relative w-full h-full overflow-hidden bg-slate-100 group ${
+              className={`relative w-full h-full overflow-hidden rounded-none bg-slate-100 group ${
                 isInteractive ? 'cursor-pointer' : ''
               }`}
             >
               <img
                 src={recipe.imageUrl}
                 alt={recipe.title}
-                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover object-center rounded-none group-hover:scale-105 transition-transform duration-500"
                 loading="eager"
                 decoding="async"
                 referrerPolicy="no-referrer"
@@ -269,7 +269,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
         <div className="w-full space-y-4">
           <button 
             onClick={onStart}
-            className="w-full py-5 bg-emerald-500 text-white rounded-3xl font-black text-2xl uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+            className="w-full py-5 bg-emerald-500 text-white rounded-3xl font-black text-2xl uppercase tracking-widest shadow-md active:scale-95 transition-all"
           >
             {t.start}
           </button>
@@ -286,7 +286,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
         </div>
       </div>
       
-      <div className="pb-5 pt-2 flex flex-col items-center gap-1.5 z-20 flex-shrink-0">
+      <div className="w-full bg-white pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] pt-2 flex flex-col items-center gap-1.5 z-20 flex-shrink-0">
         <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
           <a href="/politica-de-privacidade" className="hover:text-emerald-600 transition-colors">
             Privacidade
