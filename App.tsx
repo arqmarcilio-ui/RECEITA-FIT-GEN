@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DietaryFilter, NutritionalGoal, UserPreferences, RecipeResult, createInitialFormState, resolveHistoryTypeFromPrefs } from './types';
 import { generateRecipe } from './services/geminiService';
 import { safeSaveToLocalStorage } from './services/storageService';
@@ -23,6 +23,7 @@ import { Capacitor } from '@capacitor/core';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'splash' | 'form' | 'loading' | 'result' | 'favs' | 'hist' | 'publicHist' | 'adminHist' | 'privacy' | 'deletion'>('splash');
+  const [formStep, setFormStep] = useState<number>(1);
   // Idioma fixo em Português do Brasil (PT-BR)
   const language: Language = 'pt';
   const t = translations[language];
@@ -31,11 +32,88 @@ const App: React.FC = () => {
   const [result, setResult] = useState<RecipeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const viewRef = useRef(view);
+  const formStepRef = useRef(formStep);
+  const suppressPopStateRef = useRef(false);
+
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
+
+  useEffect(() => {
+    formStepRef.current = formStep;
+  }, [formStep]);
+
   const resetFormState = () => {
     setPrefs(createInitialFormState());
     setFormKey(prev => prev + 1);
+    setFormStep(1);
+    formStepRef.current = 1;
     setError(null);
   };
+
+  const navigateToSplash = (shouldResetForm = false) => {
+    if (shouldResetForm) {
+      resetFormState();
+    }
+    setView('splash');
+    viewRef.current = 'splash';
+    if (window.history.state?.receitafitInternal) {
+      suppressPopStateRef.current = true;
+      window.history.back();
+    }
+  };
+
+  useEffect(() => {
+    if (view !== 'splash' && !window.history.state?.receitafitInternal) {
+      window.history.pushState({ receitafitInternal: true, view }, '');
+    }
+  }, [view]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (suppressPopStateRef.current) {
+        suppressPopStateRef.current = false;
+        return;
+      }
+
+      const currentView = viewRef.current;
+
+      if (currentView === 'form') {
+        if (formStepRef.current > 1) {
+          const prevStep = formStepRef.current - 1;
+          setFormStep(prevStep);
+          formStepRef.current = prevStep;
+          window.history.pushState({ receitafitInternal: true, view: 'form', step: prevStep }, '');
+        } else {
+          resetFormState();
+          setView('splash');
+          viewRef.current = 'splash';
+        }
+        return;
+      }
+
+      if (currentView === 'result') {
+        resetFormState();
+        setView('splash');
+        viewRef.current = 'splash';
+        return;
+      }
+
+      if (currentView === 'loading') {
+        window.history.pushState({ receitafitInternal: true, view: 'loading' }, '');
+        return;
+      }
+
+      if (currentView !== 'splash') {
+        setView('splash');
+        viewRef.current = 'splash';
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Auth state
   const [user, setUser] = useState<User | null>(null);
@@ -531,11 +609,31 @@ const App: React.FC = () => {
   const isAccountDeletionPage = pathname === '/excluir-conta' || pathname === '/excluir-conta/';
 
   if (isPrivacyPolicyPage || view === 'privacy') {
-    return <PrivacyPolicy onBack={() => { window.location.href = '/'; }} />;
+    return (
+      <PrivacyPolicy
+        onBack={() => {
+          if (isPrivacyPolicyPage) {
+            window.location.href = '/';
+          } else {
+            navigateToSplash(false);
+          }
+        }}
+      />
+    );
   }
 
   if (isAccountDeletionPage || view === 'deletion') {
-    return <AccountDeletion onBack={() => { window.location.href = '/'; }} />;
+    return (
+      <AccountDeletion
+        onBack={() => {
+          if (isAccountDeletionPage) {
+            window.location.href = '/';
+          } else {
+            navigateToSplash(false);
+          }
+        }}
+      />
+    );
   }
 
   if (authLoading) {
@@ -633,10 +731,9 @@ const App: React.FC = () => {
             key={formKey}
             initialData={prefs}
             language={language}
-            onCancel={() => {
-              resetFormState();
-              setView('splash');
-            }}
+            step={formStep}
+            onStepChange={setFormStep}
+            onCancel={() => navigateToSplash(true)}
             onSubmit={handleGenerate}
           />
         </div>
@@ -648,10 +745,7 @@ const App: React.FC = () => {
         <ResultScreen 
           recipe={result} 
           language={language} 
-          onBack={() => {
-            resetFormState();
-            setView('splash');
-          }} 
+          onBack={() => navigateToSplash(true)} 
           onUpdateImage={handleManualImageUpdate}
         />
       )}
@@ -660,7 +754,7 @@ const App: React.FC = () => {
         <FavoritesList 
           language={language} 
           onSelect={(r) => { setResult(r); setView('result'); }} 
-          onBack={() => setView('splash')} 
+          onBack={() => navigateToSplash(false)} 
         />
       )}
       
@@ -668,7 +762,7 @@ const App: React.FC = () => {
         <HistoryList 
           language={language} 
           onSelect={(r) => { setResult(r); setView('result'); }} 
-          onBack={() => setView('splash')} 
+          onBack={() => navigateToSplash(false)} 
         />
       )}
       
@@ -677,16 +771,16 @@ const App: React.FC = () => {
           initialTab="all"
           language={language} 
           onSelect={(r) => { setResult(r); setView('result'); }} 
-          onBack={() => setView('splash')} 
+          onBack={() => navigateToSplash(false)} 
         />
       )}
       {view === 'adminHist' && user?.email === 'arqmarcilio@gmail.com' && (
-  <AdminHistoryList
-    language={language}
-    onBack={() => setView('splash')}
-    onSelect={(r) => { setResult(r); setView('result'); }}
-  />
-)}
+        <AdminHistoryList
+          language={language}
+          onBack={() => navigateToSplash(false)}
+          onSelect={(r) => { setResult(r); setView('result'); }}
+        />
+      )}
     </div>
   );
 };

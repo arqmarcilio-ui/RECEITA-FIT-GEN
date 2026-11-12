@@ -16,6 +16,8 @@ interface StepFormProps {
   onSubmit: (data: UserPreferences) => void;
   onCancel: () => void;
   language: Language;
+  step?: number;
+  onStepChange?: (step: number) => void;
 }
 
 const MAIN_DIETARY_PROFILES: DietaryFilter[] = [
@@ -33,9 +35,21 @@ const MEAL_MOMENT_OPTIONS: MealType[] = [
   MealType.LANCHE
 ];
 
-const StepForm: React.FC<StepFormProps> = ({ initialData, onSubmit, onCancel, language }) => {
+const StepForm: React.FC<StepFormProps> = ({
+  initialData,
+  onSubmit,
+  onCancel,
+  language,
+  step: controlledStep,
+  onStepChange
+}) => {
   const t = translations[language];
-  const [step, setStep] = useState(1);
+  const [internalStep, setInternalStep] = useState(1);
+  const step = controlledStep !== undefined ? controlledStep : internalStep;
+  const setStep = (nextStep: number) => {
+    setInternalStep(nextStep);
+    onStepChange?.(nextStep);
+  };
   const [formData, setFormData] = useState<UserPreferences>(() => ({
     ...initialData,
     dietaryFilters: [...initialData.dietaryFilters]

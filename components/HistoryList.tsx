@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RecipeResult, DietaryFilter, resolveRecipeHistoryType } from '../types';
 import { Language, translations } from '../translations';
-import { ArrowLeft, Clock, Flame, History, Search, X } from 'lucide-react';
+import { ArrowLeft, Clock, Flame, History, Search, Trash2, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { db, collection, query, orderBy, limit, onSnapshot } from '../firebase';
+import { safeSaveToLocalStorage } from '../services/storageService';
 
 export type HistoryTab = 'mine' | 'all' | 'profile';
 
@@ -118,6 +119,19 @@ const HistoryList: React.FC<HistoryListProps> = ({
   // 1. Minhas Receitas (localStorage: fit_gen_hist)
   const [myRecipes, setMyRecipes] = useState<RecipeResult[]>([]);
   const [loadingMine, setLoadingMine] = useState(true);
+  const [recipeToDelete, setRecipeToDelete] = useState<RecipeResult | null>(null);
+
+  const handleConfirmDeleteRecipe = () => {
+    if (!recipeToDelete) return;
+    const updated = myRecipes.filter((item) => {
+      if (recipeToDelete.id && item.id) return item.id !== recipeToDelete.id;
+      if (recipeToDelete.tempId && item.tempId) return item.tempId !== recipeToDelete.tempId;
+      return item !== recipeToDelete && item.title !== recipeToDelete.title;
+    });
+    setMyRecipes(updated);
+    safeSaveToLocalStorage('fit_gen_hist', updated, 100);
+    setRecipeToDelete(null);
+  };
 
   // 2. Todas as Receitas (Firestore: public_recipes, limite 100)
   const [publicRecipes, setPublicRecipes] = useState<RecipeResult[]>([]);
@@ -234,7 +248,7 @@ const HistoryList: React.FC<HistoryListProps> = ({
       <div className="px-6 sm:px-8 pt-6 pb-4 space-y-5">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 p-3 bg-slate-50 text-slate-900 rounded-full hover:bg-slate-100 transition-all w-fit group active:scale-95"
+          className="flex items-center gap-2 p-3 bg-emerald-500 text-white rounded-full hover:bg-emerald-600 shadow-sm transition-all w-fit group active:scale-95"
           title={t.back}
         >
           <ArrowLeft className="w-5 h-5" />
@@ -403,15 +417,29 @@ const HistoryList: React.FC<HistoryListProps> = ({
                   onClick={() => onSelect(r)}
                   className="bg-white p-4 rounded-[2.5rem] border-2 border-slate-50 shadow-sm flex flex-col gap-3 cursor-pointer active:scale-[0.98] transition-all group"
                 >
-                  <div className="relative aspect-square w-full rounded-[2rem] overflow-hidden shadow-md">
+                  <div className="relative aspect-square w-full rounded-none overflow-hidden">
                     <img 
                       src={r.imageUrl || `https://picsum.photos/seed/${r.id || r.tempId}/400/400`} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      className="w-full h-full object-cover rounded-none group-hover:scale-110 transition-transform duration-500" 
                       alt={r.title} 
                       loading="lazy"
                       decoding="async"
                       referrerPolicy="no-referrer"
                     />
+                    {activeTab === 'mine' && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRecipeToDelete(r);
+                        }}
+                        title="Apagar do meu histórico"
+                        aria-label="Apagar do meu histórico"
+                        className="absolute top-2 right-2 z-10 p-2 bg-white/90 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-full shadow-sm transition-all active:scale-90"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
 
                   <div className="space-y-2 px-1 flex-1 flex flex-col justify-between">
@@ -463,12 +491,53 @@ const HistoryList: React.FC<HistoryListProps> = ({
         )}
       </div>
 
+      {/* Modal de confirmação para apagar receita de Minhas Receitas */}
+      {recipeToDelete && (
+        <div
+          className="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-6"
+          onClick={() => setRecipeToDelete(null)}
+        >
+          <div
+            className="w-full max-w-xs bg-white rounded-3xl p-6 shadow-xl space-y-5 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-sm font-black text-slate-900 uppercase tracking-wide">
+                Apagar esta receita do seu histórico?
+              </p>
+              <p className="text-xs font-bold text-slate-500 line-clamp-2">
+                {recipeToDelete.title}
+              </p>
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setRecipeToDelete(null)}
+                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteRecipe}
+                className="flex-1 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-sm transition-all active:scale-95"
+              >
+                Apagar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Action */}
       <div className="fixed bottom-0 left-0 right-0 px-6 sm:px-8 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] bg-white border-t border-slate-100 z-50">
         <div className="max-w-xl mx-auto">
           <button 
             onClick={onBack} 
-            className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-md active:scale-95 transition-all"
+            className="w-full py-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-3xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-md active:scale-95 transition-all"
           >
             {t.back}
           </button>
