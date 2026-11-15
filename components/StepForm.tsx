@@ -28,11 +28,58 @@ const MAIN_DIETARY_PROFILES: DietaryFilter[] = [
   DietaryFilter.SEM_ACUCAR
 ];
 
-const MEAL_MOMENT_OPTIONS: MealType[] = [
-  MealType.CAFE_DA_MANHA,
-  MealType.ALMOCO,
-  MealType.JANTAR,
-  MealType.LANCHE
+interface DirectMealOption {
+  id: string;
+  label: string;
+  preparationCategory: PreparationCategory;
+  mealType: MealType;
+  fullWidth?: boolean;
+}
+
+const DIRECT_MEAL_OPTIONS: DirectMealOption[] = [
+  {
+    id: 'cafe_da_manha',
+    label: 'Café da manhã',
+    preparationCategory: PreparationCategory.REFEICAO,
+    mealType: MealType.CAFE_DA_MANHA
+  },
+  {
+    id: 'lanche',
+    label: 'Lanche',
+    preparationCategory: PreparationCategory.REFEICAO,
+    mealType: MealType.LANCHE
+  },
+  {
+    id: 'almoco',
+    label: 'Almoço',
+    preparationCategory: PreparationCategory.REFEICAO,
+    mealType: MealType.ALMOCO
+  },
+  {
+    id: 'sobremesa',
+    label: 'Sobremesa',
+    preparationCategory: PreparationCategory.SOBREMESA,
+    mealType: MealType.SOBREMESA
+  },
+  {
+    id: 'jantar',
+    label: 'Jantar',
+    preparationCategory: PreparationCategory.REFEICAO,
+    mealType: MealType.JANTAR
+  },
+  {
+    id: 'bebida',
+    label: 'Bebida',
+    preparationCategory: PreparationCategory.BEBIDA,
+    mealType: MealType.BEBIDA
+  },
+  {
+    id: 'especifico',
+    label: 'Refeição / Bebida específica',
+    preparationCategory: PreparationCategory.ALGO_ESPECIFICO,
+    mealType: MealType.PRATO_ESPECIFICO,
+    fullWidth: true
+  }
 ];
 
 const StepForm: React.FC<StepFormProps> = ({
@@ -108,38 +155,29 @@ const StepForm: React.FC<StepFormProps> = ({
     }));
   };
 
-  const selectPreparationCategory = (category: PreparationCategory) => {
-    setFormData(p => {
-      let nextMealType: MealType = p.mealType;
-
-      if (category === PreparationCategory.REFEICAO) {
-        nextMealType = MEAL_MOMENT_OPTIONS.includes(p.mealType)
-          ? p.mealType
-          : MealType.ALMOCO;
-      } else if (category === PreparationCategory.SOBREMESA) {
-        nextMealType = MealType.SOBREMESA;
-      } else if (category === PreparationCategory.BEBIDA) {
-        nextMealType = MealType.BEBIDA;
-      } else if (category === PreparationCategory.ALGO_ESPECIFICO) {
-        nextMealType = MealType.PRATO_ESPECIFICO;
-      }
-
-      return {
-        ...p,
-        preparationCategory: category,
-        mealType: nextMealType,
-        dishType: category === PreparationCategory.ALGO_ESPECIFICO ? p.dishType : ''
-      };
-    });
-  };
-
-  const selectMealMoment = (m: MealType) => {
+  const selectDirectMealOption = (option: DirectMealOption) => {
     setFormData(p => ({
       ...p,
-      preparationCategory: PreparationCategory.REFEICAO,
-      mealType: m,
-      dishType: ''
+      preparationCategory: option.preparationCategory,
+      mealType: option.mealType,
+      dishType: option.preparationCategory === PreparationCategory.ALGO_ESPECIFICO ? p.dishType : ''
     }));
+  };
+
+  const isDirectMealOptionSelected = (option: DirectMealOption): boolean => {
+    if (option.preparationCategory === PreparationCategory.ALGO_ESPECIFICO) {
+      return formData.preparationCategory === PreparationCategory.ALGO_ESPECIFICO;
+    }
+    if (option.preparationCategory === PreparationCategory.SOBREMESA) {
+      return formData.preparationCategory === PreparationCategory.SOBREMESA;
+    }
+    if (option.preparationCategory === PreparationCategory.BEBIDA) {
+      return formData.preparationCategory === PreparationCategory.BEBIDA;
+    }
+    return (
+      formData.preparationCategory === PreparationCategory.REFEICAO &&
+      formData.mealType === option.mealType
+    );
   };
 
   const StepHeader = () => {
@@ -227,6 +265,63 @@ const StepForm: React.FC<StepFormProps> = ({
               <div className="space-y-2.5 pt-1">
                 <div className="space-y-1">
                   <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
+                    {t.whatToPrepare}
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  {DIRECT_MEAL_OPTIONS.map(option => {
+                    const isSelected = isDirectMealOptionSelected(option);
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => selectDirectMealOption(option)}
+                        className={`${
+                          option.fullWidth ? 'col-span-2 py-3.5' : 'py-3'
+                        } px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
+                          isSelected
+                            ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
+                            : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {formData.preparationCategory === PreparationCategory.ALGO_ESPECIFICO && (
+                  <div className="space-y-2 pt-1">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                      {t.specificDish}
+                    </p>
+
+                    <input
+                      placeholder={t.dishPlaceholder}
+                      className="w-full p-3.5 bg-white border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-slate-400 focus:outline-none transition-all"
+                      value={formData.dishType}
+                      onChange={(e) =>
+                        setFormData(p => ({ ...p, dishType: e.target.value }))
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <div className="space-y-2.5">
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
                     {t.nutritionalGoal}
                   </h3>
                   <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">
@@ -263,83 +358,8 @@ const StepForm: React.FC<StepFormProps> = ({
                   </button>
                 </div>
               </div>
-            </motion.div>
-          )}
-
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
-              <div className="space-y-1">
-                <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
-                  {t.whatToPrepare}
-                </h3>
-              </div>
 
               <div className="space-y-5">
-                <div className="grid grid-cols-2 gap-1.5">
-                  {Object.values(PreparationCategory).map(cat => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => selectPreparationCategory(cat)}
-                      className={`py-3.5 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
-                        formData.preparationCategory === cat
-                          ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                          : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      {(t.preparationCategories as any)[cat]}
-                    </button>
-                  ))}
-                </div>
-
-                {formData.preparationCategory === PreparationCategory.REFEICAO && (
-                  <div className="space-y-2 pt-1">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">
-                      {t.mealMoment}
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {MEAL_MOMENT_OPTIONS.map(m => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => selectMealMoment(m)}
-                          className={`py-3 px-4 border-2 rounded-2xl transition-all text-[12px] leading-[15px] font-black uppercase tracking-wider text-center ${
-                            formData.mealType === m
-                              ? 'bg-emerald-50/50 text-emerald-600 border-emerald-500'
-                              : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          {(t.mealTypes as any)[m]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {formData.preparationCategory === PreparationCategory.ALGO_ESPECIFICO && (
-                  <div className="space-y-2 pt-1">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">
-                      {t.specificDish}
-                    </p>
-
-                    <input
-                      placeholder={t.dishPlaceholder}
-                      className="w-full p-3.5 bg-white border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-slate-400 focus:outline-none transition-all"
-                      value={formData.dishType}
-                      onChange={(e) =>
-                        setFormData(p => ({ ...p, dishType: e.target.value }))
-                      }
-                    />
-                  </div>
-                )}
-
                 <div className="space-y-2.5 pt-1">
                   <h3 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">
                     {t.portions}

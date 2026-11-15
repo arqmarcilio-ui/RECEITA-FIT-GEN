@@ -46,10 +46,10 @@ export const translations = {
     nutritionalGoal: 'META NUTRICIONAL',
     nutritionalGoalSub: 'Escolha uma opção.',
     noNutritionalGoal: 'Sem meta nutricional',
-    whatToPrepare: 'O que você quer preparar?',
+    whatToPrepare: 'Que refeição você quer preparar?',
     mealMoment: 'Momento da refeição',
     specificDish: 'O que você quer preparar?',
-    dishPlaceholder: 'Ex: Panqueca de Aveia, Poke, Wrap...',
+    dishPlaceholder: 'O que você quer preparar?',
     dishSub: 'Direcione a IA para o que deseja comer',
     portions: 'Porções',
     people: 'Pessoas',
@@ -115,7 +115,7 @@ export const translations = {
       'Refeição': 'Refeição',
       'Sobremesa': 'Sobremesa',
       'Bebida': 'Bebida',
-      'Algo específico': 'Algo específico'
+      'Algo específico': 'Refeição / Bebida específica'
     },
     mealTypes: {
       'Café da Manhã': 'Café da manhã',
@@ -124,7 +124,7 @@ export const translations = {
       'Lanche': 'Lanche',
       'Sobremesa': 'Sobremesa',
       'Bebida': 'Bebida',
-      'Prato Específico': 'Algo específico'
+      'Prato Específico': 'Refeição / Bebida específica'
     },
     calorieLevels: {
       'Até 200 kcal': 'Até 200 kcal',
