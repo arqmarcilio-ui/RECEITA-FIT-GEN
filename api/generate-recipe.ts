@@ -380,23 +380,47 @@ REGRAS CRÍTICAS:
 6. Nunca retorne um valor único. Sempre utilize intervalo de preço.
 7. Retorne APENAS o JSON válido seguindo o esquema.
 
-REGRA DE TÍTULO (USO CRITERIOSO DA PALAVRA "FIT"):
-- Crie títulos naturais, apetitosos, comerciais e fáceis de entender.
-- NÃO use a palavra "FIT" ou "Fit" automaticamente no título.
-- Use "Fit" apenas quando a receita representar uma adaptação nutricional relevante ou possuir um benefício claramente associado a alimentação fitness, como:
-  * emagrecimento;
-  * baixa caloria;
-  * alta proteína;
-  * low carb;
-  * mais fibras;
-  * redução relevante de açúcar;
-  * redução relevante de gordura;
-  * adaptação mais leve de uma receita tradicional.
-- Quando a receita já for naturalmente simples, saudável ou equilibrada, não acrescente "FIT" apenas para reforçar a marca.
-- Exemplos adequados em que "Fit" pode ser usado: "Brownie Fit sem Açúcar", "Panqueca Fit Proteica", "Lasanha Fit Low Carb", "Mousse Fit de Chocolate", "Bolo Fit Rico em Fibras", "Torta Fit de Banana sem Açúcar".
-- Exemplos em que "FIT" deve ser evitado: prefira "Frango Grelhado com Legumes" (evite "Frango Grelhado FIT com Legumes"), "Omelete com Espinafre" (evite "Omelete FIT com Espinafre"), "Canja com Arroz Integral" (evite "Canja FIT com Arroz Integral"), "Salmão com Brócolis" (evite "Salmão FIT com Brócolis"), "Tofu Salteado com Cogumelos" (evite "Tofu FIT com Cogumelos").
-- Relação com Meta Nutricional: se houver uma Meta Nutricional selecionada (Emagrecimento, Ganho de massa, Alta proteína, Low Carb, Baixa caloria, Mais fibras), ela pode servir como um dos critérios para permitir o uso de "Fit", mas NÃO é obrigatório colocar "Fit" mesmo com Meta Nutricional selecionada. O título deve continuar soando natural (ex: para Alta proteína, pode gerar "Panqueca Fit Proteica de Banana", mas também pode gerar "Frango Cremoso Rico em Proteínas"; não force "Fit" quando outro título for melhor).
-- Prato específico / Algo específico: se o usuário pedir explicitamente uma receita tradicional ou específica (ex: "Feijoada"), preserve o nome principal do prato e não transforme automaticamente em "Feijoada FIT"; só use "Feijoada Fit" se a receita realmente tiver sido adaptada de forma relevante para uma versão mais leve ou nutricionalmente diferente.
+REGRA DE TÍTULOS (NOMENCLATURA GASTRONÔMICA, VARIEDADE E USO CRITERIOSO DE "FIT"):
+- Crie títulos naturais, variados, apetitosos, gastronômicos e fáceis de entender.
+- Varie a estrutura dos títulos entre as gerações. Evite padrões repetitivos como "[prato] cremoso de...", "[prato] fit de...", "[prato] especial de...". O título deve soar como nome real de prato de restaurante ou livro de receitas, e não como uma fórmula repetida.
+- NÃO repita automaticamente adjetivos ou muletas descritivas como:
+  * cremoso / cremosa
+  * crocante
+  * leve
+  * refrescante
+  * clássico / clássica
+  * especial
+  * fit
+  * proteico / proteica
+  * saudável
+  * delicioso / deliciosa
+- Use esses termos SOMENTE quando forem estritamente necessários e relevantes para diferenciar a receita.
+- NÃO use "cremoso" ou "cremosa" apenas porque a preparação possui molho, queijo, iogurte, leite vegetal, pasta ou textura macia.
+- Priorize títulos construídos a partir de:
+  1. nome principal do prato;
+  2. ingrediente de destaque;
+  3. técnica de preparo (ex.: grelhado, assado, salteado, rústico, ao forno, na brasa);
+  4. acompanhamento ou elemento aromático/diferenciador.
+- Exemplos de direção obrigatória:
+  * Prefira "Risoto de Camarão com Limão Siciliano" em vez de "Risoto Cremoso de Camarão".
+  * Prefira "Frango com Espinafre e Molho de Ervas" em vez de "Frango Cremoso com Espinafre".
+  * Prefira "Taça de Manga com Coco e Chia" em vez de "Sobremesa Cremosa de Manga".
+- Uso criterioso da palavra "FIT":
+  * NÃO use a palavra "FIT" ou "Fit" automaticamente no título.
+  * Use "Fit" apenas quando a receita representar uma adaptação nutricional relevante ou possuir um benefício claramente associado a alimentação fitness, como:
+    - emagrecimento;
+    - baixa caloria;
+    - alta proteína;
+    - low carb;
+    - mais fibras;
+    - redução relevante de açúcar;
+    - redução relevante de gordura;
+    - adaptação mais leve de uma receita tradicional.
+  * Quando a receita já for naturalmente simples, saudável ou equilibrada, não acrescente "FIT" apenas para reforçar a marca.
+  * Exemplos adequados em que "Fit" pode ser usado: "Brownie Fit sem Açúcar", "Panqueca Fit de Aveia e Cacau", "Lasanha Fit de Abobrinha", "Mousse Fit de Maracujá", "Bolo Fit de Maçã e Canela", "Torta Fit de Banana sem Açúcar".
+  * Exemplos em que "FIT" deve ser evitado: prefira "Frango Grelhado com Legumes" (evite "Frango Grelhado FIT com Legumes"), "Omelete com Espinafre" (evite "Omelete FIT com Espinafre"), "Canja com Arroz Integral" (evite "Canja FIT com Arroz Integral"), "Salmão com Brócolis" (evite "Salmão FIT com Brócolis"), "Tofu Salteado com Cogumelos" (evite "Tofu FIT com Cogumelos").
+  * Relação com Meta Nutricional: se houver uma Meta Nutricional selecionada (Emagrecimento, Ganho de massa, Alta proteína, Low Carb, Baixa caloria, Mais fibras), ela pode servir como um dos critérios para permitir o uso de "Fit", mas NÃO é obrigatório colocar "Fit" mesmo com Meta Nutricional selecionada. O título deve continuar soando natural e gastronômico (ex.: para Alta proteína, prefira "Frango Grelhado com Quinoa e Ervas" ou "Omelete de Claras com Espinafre e Tomate"; não force "Fit" nem "Cremoso").
+  * Prato específico / Refeição ou Bebida específica: se o usuário pedir explicitamente uma receita tradicional ou específica (ex.: "Feijoada", "Risoto de camarão", "Cappuccino"), preserve o nome principal do prato e não transforme automaticamente em "Feijoada FIT" nem adicione "Cremoso" por padrão; só use "Fit" se a receita realmente tiver sido adaptada de forma relevante para uma versão mais leve ou nutricionalmente diferente.
 
 REGRAS DE SEGURANÇA ALIMENTAR:
 - Se o usuário selecionar "Sem Glúten", proíba trigo, centeio, cevada, malte e derivados. Em caso de dúvida, não use o ingrediente.
@@ -427,7 +451,7 @@ REGRAS DE SEGURANÇA ALIMENTAR:
 - Ingredientes para usar: ${prefs.ingredients || 'Os melhores disponíveis'}
 - Ingredientes para EVITAR: ${prefs.dispensableIngredients || 'Nenhum'}${dietaryReinforcement}
 
-Forneça um título natural seguindo estritamente a REGRA DE TÍTULO (sem colocar "FIT" automaticamente em receitas naturalmente saudáveis), uma descrição apetitosa de no máximo 45 palavras e instruções passo a passo claras.
+Forneça um título gastronômico, variado e natural seguindo estritamente a REGRA DE TÍTULOS (evitando adjetivos repetitivos como "cremoso", "especial", "clássico" ou "delicioso" e sem colocar "FIT" automaticamente em receitas naturalmente saudáveis), uma descrição apetitosa de no máximo 45 palavras e instruções passo a passo claras.
 
 REGRAS DE PREPARO:
 - Respeite obrigatoriamente a forma de cozimento escolhida.
